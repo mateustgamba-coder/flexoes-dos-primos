@@ -598,6 +598,20 @@ input[type=date]:focus{
   font-size:11px;
   fill:var(--chalk);
 }
+.linechart-wrap{
+  display:flex;
+  align-items:flex-start;
+  gap:0;
+}
+.linechart-axis{
+  flex-shrink:0;
+}
+.linechart-axis svg{display:block;}
+.linechart-plot-scroll{
+  flex:1;
+  min-width:0;
+  margin-bottom:0;
+}
 .linechart-grid{
   stroke:var(--line);
   stroke-width:1;
@@ -1355,7 +1369,7 @@ function renderChartDetailModal(){
     chart = renderLineChart(dateKey => getCount(dateKey, pid), 100, color, DAYS);
   }
 
-  const scrollClass = (kind === 'all') ? 'chart-scroll' : 'chart-scroll no-autoscroll';
+  const chartHtml = (kind === 'all') ? `<div class="chart-scroll">${chart}</div>` : chart;
 
   return `
     <div class="modal-overlay" onclick="closeChartDetailIfOverlay(event)">
@@ -1363,7 +1377,7 @@ function renderChartDetailModal(){
         <h3>${title}</h3>
         <p class="tagline" style="margin-bottom:16px;">${subtitle}</p>
         <div class="legend">${legend}</div>
-        <div class="${scrollClass}">${chart}</div>
+        ${chartHtml}
         <div class="modal-actions">
           <button class="btn btn-ghost" onclick="closeChartDetail()">Fechar</button>
         </div>
@@ -1839,13 +1853,13 @@ function renderMultiPlayerChart(numDays){
 
 function renderLineChart(getValueForDate, goalValue, lineColor, numDays){
   const days = lastNDaysAscending(numDays);
-  const width = 580;
-  const height = 260;
-  const marginLeft = 42;
-  const marginRight = 14;
-  const marginTop = 16;
+  const pointSpacing = numDays <= 14 ? 40 : 34;
+  const axisW = 40;
+  const plotMarginRight = 20;
+  const marginTop = 26;
   const marginBottom = 30;
-  const plotW = width - marginLeft - marginRight;
+  const plotW = Math.max(220, (days.length-1) * pointSpacing) + plotMarginRight;
+  const height = 260;
   const plotH = height - marginTop - marginBottom;
 
   const values = days.map(d => getValueForDate(todayKey(d)));
@@ -1853,26 +1867,26 @@ function renderLineChart(getValueForDate, goalValue, lineColor, numDays){
   const yTickCount = 5;
   const niceMax = Math.max(25, Math.ceil((maxVal*1.1) / 25) * 25);
 
+  let axisLabels = '';
   let gridLines = '';
-  let yLabels = '';
   for(let t=0; t<=yTickCount; t++){
     const val = Math.round((niceMax / yTickCount) * t);
     const y = marginTop + plotH - (val/niceMax)*plotH;
-    gridLines += `<line x1="${marginLeft}" y1="${y}" x2="${width-marginRight}" y2="${y}" class="linechart-grid"></line>`;
-    yLabels += `<text x="${marginLeft-8}" y="${y+3}" class="linechart-ylabel" text-anchor="end">${val}</text>`;
+    axisLabels += `<text x="${axisW-8}" y="${y+3}" class="linechart-ylabel" text-anchor="end">${val}</text>`;
+    gridLines += `<line x1="0" y1="${y}" x2="${plotW}" y2="${y}" class="linechart-grid"></line>`;
   }
 
-  const stepX = days.length > 1 ? plotW/(days.length-1) : 0;
+  const stepX = days.length > 1 ? (plotW-plotMarginRight)/(days.length-1) : 0;
   const points = days.map((d,i)=>{
     const v = values[i];
-    const x = marginLeft + i*stepX;
+    const x = i*stepX + 6;
     const y = marginTop + plotH - (v/niceMax)*plotH;
     return {x, y, v, d};
   });
 
   const polylinePoints = points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
 
-  const labelEvery = numDays <= 14 ? 1 : (numDays <= 30 ? 3 : 7);
+  const labelEvery = numDays <= 14 ? 1 : (numDays <= 30 ? 2 : 4);
   let xLabels = '';
   points.forEach((p,i)=>{
     if(i % labelEvery === 0 || i === points.length-1){
@@ -1883,19 +1897,35 @@ function renderLineChart(getValueForDate, goalValue, lineColor, numDays){
   const goalY = marginTop + plotH - (Math.min(goalValue,niceMax)/niceMax)*plotH;
 
   let dots = '';
+  let valueLabels = '';
   points.forEach(p=>{
     dots += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${lineColor}"><title>${p.d.getDate()}/${String(p.d.getMonth()+1).padStart(2,'0')}: ${p.v}</title></circle>`;
+    const labelY = Math.max(12, p.y - 10);
+    valueLabels += `<text x="${p.x.toFixed(1)}" y="${labelY}" class="chart-value-label" text-anchor="middle">${p.v}</text>`;
   });
 
-  return `
-    <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+  const axisSvg = `
+    <svg width="${axisW}" height="${height}" viewBox="0 0 ${axisW} ${height}" xmlns="http://www.w3.org/2000/svg">
+      ${axisLabels}
+    </svg>
+  `;
+
+  const plotSvg = `
+    <svg width="${plotW}" height="${height}" viewBox="0 0 ${plotW} ${height}" xmlns="http://www.w3.org/2000/svg">
       ${gridLines}
-      <line x1="${marginLeft}" y1="${goalY}" x2="${width-marginRight}" y2="${goalY}" class="goal-line"></line>
-      ${yLabels}
+      <line x1="0" y1="${goalY}" x2="${plotW}" y2="${goalY}" class="goal-line"></line>
       ${xLabels}
       <polyline points="${polylinePoints}" fill="none" stroke="${lineColor}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></polyline>
       ${dots}
+      ${valueLabels}
     </svg>
+  `;
+
+  return `
+    <div class="linechart-wrap">
+      <div class="linechart-axis">${axisSvg}</div>
+      <div class="chart-scroll no-autoscroll linechart-plot-scroll">${plotSvg}</div>
+    </div>
   `;
 }
 
