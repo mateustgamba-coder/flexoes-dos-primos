@@ -598,6 +598,14 @@ input[type=date]:focus{
   font-size:11px;
   fill:var(--chalk);
 }
+.clickable-bar{cursor:pointer;}
+.clickable-bar:hover{opacity:0.75;}
+.chart-hint{
+  font-family:'Space Mono',monospace;
+  font-size:10px;
+  color:var(--chalk-soft);
+  margin:-6px 0 10px;
+}
 
 /* ---- avatar chip (scales to any number of people) ---- */
 .avatar-chip{
@@ -906,7 +914,7 @@ let state = {
   celebrationTotal: 0,
   celebrationTied: false,
   profileId: null,
-  progressView: 'you',
+  topChartView: 'you',
 };
 
 const PLAYER_COLORS = ['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c1)','var(--c2)','var(--c3)'];
@@ -1144,8 +1152,8 @@ function switchTab(tab){
   render();
 }
 
-function switchProgressView(view){
-  state.progressView = view;
+function switchTopChartView(view){
+  state.topChartView = view;
   render();
 }
 
@@ -1643,9 +1651,32 @@ function renderProgressTab(){
   const activeToday = state.config.players.filter(p => getCount(todayStr, p.id) > 0).length;
   const n = state.config.players.length;
   const avgPerPerson = n > 0 ? Math.round(groupTotal / n) : 0;
-  const view = state.progressView || 'you';
+  const topView = state.topChartView || 'you';
 
-  const youSection = `
+  const topChart = topView === 'you'
+    ? `
+      <div class="legend">
+        <span class="legend-item"><span class="legend-dot" style="background:var(--effort);"></span>suas flexões</span>
+        <span class="legend-item"><span class="legend-dash"></span>meta (100)</span>
+      </div>
+      <div class="chart-scroll">${renderSingleSeriesChart(dateKey => getCount(dateKey, state.myId), 100, 'var(--effort)')}</div>
+    `
+    : `
+      <div class="legend">
+        ${state.config.players.map((p,i)=>`<span class="legend-item"><span class="legend-dot" style="background:${playerChartColor(i)}"></span>${escapeHtml(p.name)}</span>`).join('')}
+        <span class="legend-item"><span class="legend-dash"></span>meta (100)</span>
+      </div>
+      <p class="chart-hint">Toca numa barra pra abrir o perfil da pessoa.</p>
+      <div class="chart-scroll">${renderMultiPlayerChart()}</div>
+    `;
+
+  return `
+    <h2 class="section-title">${topView==='you' ? 'Seu progresso' : 'Progresso de todos'}</h2>
+    <div class="progress-toggle">
+      <button class="progress-toggle-btn${topView==='you'?' active':''}" onclick="switchTopChartView('you')">Você</button>
+      <button class="progress-toggle-btn${topView==='all'?' active':''}" onclick="switchTopChartView('all')">Todos</button>
+    </div>
+    ${topView==='you' ? `
     <div class="stat-grid">
       <div class="stat-card">
         <div class="stat-name clickable-name" onclick="openProfile('${state.myId}')">${escapeHtml(playerName(state.myId))}</div>
@@ -1654,14 +1685,10 @@ function renderProgressTab(){
         <div class="stat-row"><span class="stat-num">${myStats.bestStreak}</span><span class="stat-label">maior sequência</span></div>
       </div>
     </div>
-    <div class="legend">
-      <span class="legend-item"><span class="legend-dot" style="background:var(--effort);"></span>suas flexões</span>
-      <span class="legend-item"><span class="legend-dash"></span>meta (100)</span>
-    </div>
-    <div class="chart-scroll">${renderSingleSeriesChart(dateKey => getCount(dateKey, state.myId), 100, 'var(--effort)')}</div>
-  `;
+    ` : ''}
+    ${topChart}
 
-  const groupSection = `
+    <h2 class="section-title" style="margin-top:30px;">Grupo · ${n} pessoa${n===1?'':'s'}</h2>
     <div class="stat-grid">
       <div class="stat-card">
         <div class="stat-row"><span class="stat-num">${groupTotal}</span><span class="stat-label">flexões do grupo, no total</span></div>
@@ -1675,14 +1702,52 @@ function renderProgressTab(){
     </div>
     <div class="chart-scroll">${renderSingleSeriesChart(dateKey => computeGroupDailyTotal(dateKey), n * 100, 'var(--brass)')}</div>
   `;
+}
+
+function renderMultiPlayerChart(){
+  const days = lastNDaysAscending(14);
+  const players = state.config.players;
+  const barW = 8;
+  const gap = 2;
+  const groupGap = 14;
+  const groupW = players.length*(barW+gap) - gap + groupGap;
+  const chartH = 150;
+  const marginTop = 24;
+  const marginBottom = 22;
+  const width = days.length*groupW + 10;
+  const height = chartH + marginTop + marginBottom;
+
+  let maxVal = 100;
+  days.forEach(d=>{
+    const k = todayKey(d);
+    players.forEach(p=>{ maxVal = Math.max(maxVal, getCount(k, p.id)); });
+  });
+  maxVal = Math.ceil(maxVal*1.15/10)*10;
+
+  const goalY = marginTop + chartH - (100/maxVal)*chartH;
+
+  let bars = '';
+  days.forEach((d,i)=>{
+    const k = todayKey(d);
+    const x0 = 5 + i*groupW;
+    players.forEach((p,j)=>{
+      const c = getCount(k, p.id);
+      const h = (c/maxVal)*chartH;
+      const y = marginTop + chartH - h;
+      const x = x0 + j*(barW+gap);
+      bars += `<rect x="${x}" y="${y}" width="${barW}" height="${Math.max(h,1)}" rx="1.5" fill="${playerChartColor(j)}" class="clickable-bar" onclick="openProfile('${p.id}')"><title>${escapeHtml(p.name)}: ${c}</title></rect>`;
+    });
+    if(i % 2 === 0 || i === days.length-1){
+      const cx = x0 + (players.length*(barW+gap)-gap)/2;
+      bars += `<text x="${cx}" y="${height-6}" class="chart-label" text-anchor="middle">${d.getDate()}</text>`;
+    }
+  });
 
   return `
-    <div class="progress-toggle">
-      <button class="progress-toggle-btn${view==='you'?' active':''}" onclick="switchProgressView('you')">Você</button>
-      <button class="progress-toggle-btn${view==='group'?' active':''}" onclick="switchProgressView('group')">Grupo · ${n} pessoa${n===1?'':'s'}</button>
-    </div>
-    <h2 class="section-title">${view==='you' ? 'Seu progresso' : `Grupo · ${n} pessoa${n===1?'':'s'}`}</h2>
-    ${view==='you' ? youSection : groupSection}
+    <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+      <line x1="0" y1="${goalY}" x2="${width}" y2="${goalY}" class="goal-line"></line>
+      ${bars}
+    </svg>
   `;
 }
 
