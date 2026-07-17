@@ -740,6 +740,75 @@ input[type=date]:focus{
   text-align:center;
 }
 
+.clickable-name{cursor:pointer;}
+.clickable-name:hover .roster-name, .clickable-name:hover .rank-card-name{color:var(--brass);}
+
+.profile-header{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:20px;
+}
+.profile-avatar{
+  width:52px;
+  height:52px;
+  font-size:16px;
+  border:2px solid var(--line);
+  flex-shrink:0;
+}
+.profile-name{margin:0 0 4px; display:flex; align-items:center;}
+.profile-today{
+  background:var(--surface-2);
+  border-radius:12px;
+  padding:14px 16px;
+  margin-bottom:16px;
+  text-align:center;
+}
+.profile-today-num{
+  font-family:'Anton',sans-serif;
+  font-size:40px;
+  line-height:1;
+  color:var(--chalk);
+}
+.profile-today-label{
+  font-family:'Space Mono',monospace;
+  font-size:11px;
+  color:var(--chalk-soft);
+  margin-top:2px;
+}
+.profile-stat-row{
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:10px;
+  margin-bottom:22px;
+}
+.profile-stat{
+  background:var(--surface-2);
+  border-radius:10px;
+  padding:10px 12px;
+  text-align:center;
+}
+.profile-stat-num{
+  display:block;
+  font-family:'Space Mono',monospace;
+  font-weight:700;
+  font-size:18px;
+  color:var(--brass);
+}
+.profile-stat-label{
+  font-family:'Space Mono',monospace;
+  font-size:10px;
+  color:var(--chalk-soft);
+}
+.profile-chart-label{
+  font-family:'Space Mono',monospace;
+  font-size:11px;
+  color:var(--chalk-soft);
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  margin-bottom:10px;
+}
+
 .error-banner{
   background:rgba(225,90,62,0.12);
   border:1px solid var(--effort);
@@ -811,6 +880,7 @@ let state = {
   celebrationOpen: false,
   celebrationTotal: 0,
   celebrationTied: false,
+  profileId: null,
 };
 
 const PLAYER_COLORS = ['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c1)','var(--c2)','var(--c3)'];
@@ -1162,6 +1232,63 @@ function closeCelebrationIfOverlay(e){
   if(e.target.classList.contains('modal-overlay')) closeCelebration();
 }
 
+function openProfile(playerId){
+  state.profileId = playerId;
+  render();
+}
+function closeProfile(){
+  state.profileId = null;
+  render();
+}
+function closeProfileIfOverlay(e){
+  if(e.target.classList.contains('modal-overlay')) closeProfile();
+}
+
+function renderProfileModal(){
+  const pid = state.profileId;
+  const name = playerName(pid);
+  const todayStr = todayKey();
+  const todayCount = getCount(todayStr, pid);
+  const stats = computeAllTimeStats(pid);
+  const streak = computeStreak(pid);
+  const isChamp = computeYesterdayChampions().includes(pid);
+  const color = playerColor(pid);
+  const isMe = pid === state.myId;
+
+  return `
+    <div class="modal-overlay" onclick="closeProfileIfOverlay(event)">
+      <div class="modal profile-modal">
+        <div class="profile-header">
+          <div class="avatar-chip profile-avatar" style="border-color:${color};">${initials(name)}</div>
+          <div>
+            <h3 class="profile-name">${escapeHtml(name)}${isMe ? '<span class="you-tag" style="margin-left:6px;">você</span>' : ''}</h3>
+            ${isChamp ? `<div class="champ-badge-sm">👑 campeão do dia anterior</div>` : ''}
+          </div>
+        </div>
+
+        <div class="profile-today">
+          <div class="profile-today-num">${todayCount}</div>
+          <div class="profile-today-label">flexões hoje · de 100${todayCount>=100 ? ' · meta batida 🔥' : ''}</div>
+        </div>
+
+        <div class="profile-stat-row">
+          <div class="profile-stat"><span class="profile-stat-num">${stats.total}</span><span class="profile-stat-label">total</span></div>
+          <div class="profile-stat"><span class="profile-stat-num">${stats.daysHit}</span><span class="profile-stat-label">dias na meta</span></div>
+          <div class="profile-stat"><span class="profile-stat-num">${streak}</span><span class="profile-stat-label">sequência atual</span></div>
+          <div class="profile-stat"><span class="profile-stat-num">${stats.bestStreak}</span><span class="profile-stat-label">melhor sequência</span></div>
+        </div>
+
+        <div class="profile-chart-label">Últimos 14 dias</div>
+        <div class="chart-scroll">${renderSingleSeriesChart(dateKey => getCount(dateKey, pid), 100, color)}</div>
+
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="closeProfile()">Fechar</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderSetup(){
   const rows = state.setupNames.map((n,i)=>`
     <div class="setup-player-row">
@@ -1246,6 +1373,7 @@ function renderMain(){
     ${state.settingsOpen ? renderSettingsModal() : ''}
     ${state.backdateOpen ? renderBackdateModal() : ''}
     ${state.celebrationOpen ? renderCelebrationModal() : ''}
+    ${state.profileId ? renderProfileModal() : ''}
   `;
 }
 
@@ -1290,7 +1418,7 @@ function buildRosterRows(){
     return `
       <div class="roster-row${hit?' hit':''}${p.isChamp?' champ':''}">
         <div class="avatar-chip">${initials(p.name)}</div>
-        <div class="roster-mid">
+        <div class="roster-mid clickable-name" onclick="openProfile('${p.id}')">
           <div class="roster-name">${escapeHtml(p.name)}</div>
           ${p.isChamp ? `<div class="champ-badge-sm">👑 campeão do dia anterior</div>` : ''}
           <div class="roster-bar-track"><div class="roster-bar-fill" style="width:${pct}%; background:${hit?'var(--brass)':'var(--effort)'};"></div></div>
@@ -1317,7 +1445,7 @@ function renderMyBoard(playerId){
   return `
     <div class="board${hit?' hit':''}">
       <div class="board-header">
-        <div class="board-name">
+        <div class="board-name clickable-name" onclick="openProfile('${playerId}')">
           <span class="avatar-chip" style="margin-right:9px;">${initials(playerName(playerId))}</span>${escapeHtml(playerName(playerId))}<span class="you-tag">você</span>
         </div>
         ${streak > 0 ? `<div class="streak-tag">🔥 ${streak} dia${streak>1?'s':''}</div>` : ''}
@@ -1442,7 +1570,7 @@ function buildRankRows(ranked){
         <div class="rank-card-pos">${rankEmoji(i, n, p.total)}<span class="rank-card-num">${i+1}º</span></div>
         <div class="rank-card-body">
           <div class="rank-card-top">
-            <div class="rank-card-name"><span class="avatar-chip" style="margin-right:8px;">${initials(p.name)}</span>${escapeHtml(p.name)}</div>
+            <div class="rank-card-name clickable-name" onclick="openProfile('${p.id}')"><span class="avatar-chip" style="margin-right:8px;">${initials(p.name)}</span>${escapeHtml(p.name)}</div>
             <div class="rank-card-total">${p.total}</div>
           </div>
           <div class="rank-card-title">${rankTitle(i, n, p.total)}</div>
@@ -1482,7 +1610,7 @@ function renderProgressTab(){
     <h2 class="section-title">Seu progresso</h2>
     <div class="stat-grid">
       <div class="stat-card">
-        <div class="stat-name">${escapeHtml(playerName(state.myId))}</div>
+        <div class="stat-name clickable-name" onclick="openProfile('${state.myId}')">${escapeHtml(playerName(state.myId))}</div>
         <div class="stat-row"><span class="stat-num">${myStats.total}</span><span class="stat-label">flexões no total</span></div>
         <div class="stat-row"><span class="stat-num">${myStats.daysHit}</span><span class="stat-label">dias na meta</span></div>
         <div class="stat-row"><span class="stat-num">${myStats.bestStreak}</span><span class="stat-label">maior sequência</span></div>
