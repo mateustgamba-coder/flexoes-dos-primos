@@ -10,7 +10,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Flexões">
 <style>
-<style>
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
 
 :root{
@@ -115,6 +114,21 @@ input[type=number]{
   width:80px;
   background:var(--surface-2);
   color:var(--chalk);
+}
+input[type=date]{
+  font-family:'Space Mono',monospace;
+  font-size:14px;
+  padding:11px 12px;
+  border-radius:9px;
+  border:1.5px solid var(--line);
+  width:100%;
+  background:var(--surface-2);
+  color:var(--chalk);
+  color-scheme: dark;
+}
+input[type=date]:focus{
+  outline:3px solid var(--brass);
+  outline-offset:1px;
 }
 
 /* ---- setup / identity ---- */
@@ -684,7 +698,6 @@ input[type=number]{
   .stat-grid{grid-template-columns:1fr;}
 }
 </style>
-</style>
 </head>
 <body>
 <div id="app"><p class="loading-line">Carregando...</p></div>
@@ -725,6 +738,9 @@ let state = {
   lastDelta: {},
   activeTab: 'hoje',
   setupNames: ['', '', 'Jota', 'Marco', 'Du'],
+  backdateOpen: false,
+  backdateDate: '',
+  backdateAmount: '',
 };
 
 const PLAYER_COLORS = ['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c1)','var(--c2)','var(--c3)'];
@@ -812,9 +828,9 @@ function getCount(dateKey, playerId){
   return (state.entries[dateKey] && state.entries[dateKey][playerId]) || 0;
 }
 
-async function addReps(playerId, amount){
-  const key = todayKey();
-  state.lastDelta[playerId] = amount;
+async function addReps(playerId, amount, dateKey){
+  const key = dateKey || todayKey();
+  if(!dateKey){ state.lastDelta[playerId] = amount; }
   try{
     await DOC_ENTRIES.set({
       days: { [key]: { [playerId]: FieldValue.increment(amount) } }
@@ -848,6 +864,52 @@ async function customAdd(playerId){
     await addReps(playerId, val);
   }
   if(input) input.value = '';
+}
+
+function openBackdate(){
+  const d = new Date();
+  d.setDate(d.getDate()-1);
+  state.backdateDate = todayKey(d);
+  state.backdateAmount = '';
+  state.error = null;
+  state.backdateOpen = true;
+  render();
+}
+function closeBackdate(){
+  state.backdateOpen = false;
+  state.error = null;
+  render();
+}
+function closeModalIfOverlayBackdate(e){
+  if(e.target.classList.contains('modal-overlay')) closeBackdate();
+}
+async function submitBackdate(){
+  const dateInput = document.getElementById('backdate-date');
+  const amountInput = document.getElementById('backdate-amount');
+  const dateVal = dateInput ? dateInput.value : '';
+  const amount = parseInt(amountInput ? amountInput.value : '', 10);
+  const todayStr = todayKey();
+
+  if(!dateVal){
+    state.error = 'Escolhe uma data.';
+    render();
+    return;
+  }
+  if(dateVal > todayStr){
+    state.error = 'Não dá pra registrar num dia futuro.';
+    render();
+    return;
+  }
+  if(isNaN(amount) || amount === 0){
+    state.error = 'Coloca uma quantidade válida.';
+    render();
+    return;
+  }
+
+  await addReps(state.myId, amount, dateVal);
+  state.backdateOpen = false;
+  state.error = null;
+  render();
 }
 
 function computeStreak(playerId){
@@ -1032,6 +1094,7 @@ function renderMain(){
     ${state.activeTab === 'hoje' ? renderTodayTab() : state.activeTab === 'ranking' ? renderRankingTab() : renderProgressTab()}
 
     ${state.settingsOpen ? renderSettingsModal() : ''}
+    ${state.backdateOpen ? renderBackdateModal() : ''}
   `;
 }
 
@@ -1080,6 +1143,7 @@ function renderMyBoard(playerId){
       <div class="undo-row">
         ${state.lastDelta[playerId] ? `<button class="btn btn-ghost" onclick="undoLast('${playerId}')">desfazer último (${state.lastDelta[playerId]>0?'+':''}${state.lastDelta[playerId]})</button>` : ''}
       </div>
+      <button class="btn btn-ghost" onclick="openBackdate()" style="padding-left:0;">+ registrar dia passado</button>
     </div>
   `;
 }
@@ -1327,6 +1391,31 @@ function renderSettingsModal(){
 
 function closeModalIfOverlay(e){
   if(e.target.classList.contains('modal-overlay')) toggleSettings();
+}
+
+function renderBackdateModal(){
+  const todayStr = todayKey();
+  return `
+    <div class="modal-overlay" onclick="closeModalIfOverlayBackdate(event)">
+      <div class="modal">
+        <h3>Registrar dia passado</h3>
+        <p class="tagline" style="margin-bottom:16px;">Esqueceu de marcar um dia? Registra aqui pro seu nome (${escapeHtml(playerName(state.myId))}).</p>
+        <div class="field">
+          <label class="field-label">Data</label>
+          <input type="date" id="backdate-date" value="${state.backdateDate}" max="${todayStr}">
+        </div>
+        <div class="field">
+          <label class="field-label">Quantidade de flexões</label>
+          <input type="number" id="backdate-amount" placeholder="Ex: 100" min="1" max="999" value="${state.backdateAmount}">
+        </div>
+        ${state.error ? `<div class="error-banner">${state.error}</div>` : ''}
+        <button class="btn btn-primary btn-block" onclick="submitBackdate()">Registrar</button>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="closeBackdate()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  `;
 }
 function toggleSettings(){
   state.settingsOpen = !state.settingsOpen;
