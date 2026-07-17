@@ -606,6 +606,14 @@ input[type=date]:focus{
   color:var(--chalk-soft);
   margin:-6px 0 10px;
 }
+.chart-hint-link{
+  color:var(--brass);
+  text-decoration:underline;
+  cursor:pointer;
+}
+.chart-clickable{cursor:pointer; border-radius:10px; transition:background .15s ease;}
+.chart-clickable:hover{background:var(--surface-2);}
+.detail-modal{max-width:640px;}
 
 /* ---- avatar chip (scales to any number of people) ---- */
 .avatar-chip{
@@ -915,6 +923,8 @@ let state = {
   celebrationTied: false,
   profileId: null,
   topChartView: 'you',
+  detailChartOpen: false,
+  detailChartKind: null,
 };
 
 const PLAYER_COLORS = ['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c1)','var(--c2)','var(--c3)'];
@@ -1290,6 +1300,67 @@ function closeProfileIfOverlay(e){
   if(e.target.classList.contains('modal-overlay')) closeProfile();
 }
 
+function openChartDetail(kind){
+  state.detailChartOpen = true;
+  state.detailChartKind = kind;
+  render();
+}
+function closeChartDetail(){
+  state.detailChartOpen = false;
+  render();
+}
+function closeChartDetailIfOverlay(e){
+  if(e.target.classList.contains('modal-overlay')) closeChartDetail();
+}
+
+function renderChartDetailModal(){
+  const kind = state.detailChartKind;
+  const n = state.config.players.length;
+  const DAYS = 30;
+  let title = '';
+  let subtitle = '';
+  let legend = '';
+  let chart = '';
+
+  if(kind === 'you'){
+    title = escapeHtml(playerName(state.myId));
+    subtitle = `últimos ${DAYS} dias · suas flexões`;
+    legend = `<span class="legend-item"><span class="legend-dot" style="background:var(--effort);"></span>flexões</span><span class="legend-item"><span class="legend-dash"></span>meta (100)</span>`;
+    chart = renderSingleSeriesChart(dateKey => getCount(dateKey, state.myId), 100, 'var(--effort)', DAYS, 220);
+  } else if(kind === 'group'){
+    title = 'Grupo';
+    subtitle = `últimos ${DAYS} dias · total combinado de ${n} pessoa${n===1?'':'s'}`;
+    legend = `<span class="legend-item"><span class="legend-dot" style="background:var(--brass);"></span>total do grupo</span><span class="legend-item"><span class="legend-dash"></span>meta do grupo (${n*100})</span>`;
+    chart = renderSingleSeriesChart(dateKey => computeGroupDailyTotal(dateKey), n*100, 'var(--brass)', DAYS, 220);
+  } else if(kind === 'all'){
+    title = 'Todos';
+    subtitle = `últimos ${DAYS} dias · cada barra é uma pessoa`;
+    legend = state.config.players.map((p,i)=>`<span class="legend-item"><span class="legend-dot" style="background:${playerChartColor(i)}"></span>${escapeHtml(p.name)}</span>`).join('');
+    chart = renderMultiPlayerChart(DAYS);
+  } else if(kind === 'profile'){
+    const pid = state.profileId;
+    const color = playerColor(pid);
+    title = escapeHtml(playerName(pid));
+    subtitle = `últimos ${DAYS} dias`;
+    legend = `<span class="legend-item"><span class="legend-dot" style="background:${color};"></span>flexões</span><span class="legend-item"><span class="legend-dash"></span>meta (100)</span>`;
+    chart = renderSingleSeriesChart(dateKey => getCount(dateKey, pid), 100, color, DAYS, 220);
+  }
+
+  return `
+    <div class="modal-overlay" onclick="closeChartDetailIfOverlay(event)">
+      <div class="modal detail-modal">
+        <h3>${title}</h3>
+        <p class="tagline" style="margin-bottom:16px;">${subtitle}</p>
+        <div class="legend">${legend}</div>
+        <div class="chart-scroll">${chart}</div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="closeChartDetail()">Fechar</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderProfileModal(){
   const pid = state.profileId;
   const name = playerName(pid);
@@ -1325,7 +1396,8 @@ function renderProfileModal(){
         </div>
 
         <div class="profile-chart-label">Últimos 14 dias</div>
-        <div class="chart-scroll">${renderSingleSeriesChart(dateKey => getCount(dateKey, pid), 100, color)}</div>
+        <p class="chart-hint">Toca no gráfico pra ver mais detalhes.</p>
+        <div class="chart-scroll chart-clickable" onclick="openChartDetail('profile')">${renderSingleSeriesChart(dateKey => getCount(dateKey, pid), 100, color)}</div>
 
         <div class="modal-actions">
           <button class="btn btn-ghost" onclick="closeProfile()">Fechar</button>
@@ -1420,6 +1492,7 @@ function renderMain(){
     ${state.backdateOpen ? renderBackdateModal() : ''}
     ${state.celebrationOpen ? renderCelebrationModal() : ''}
     ${state.profileId ? renderProfileModal() : ''}
+    ${state.detailChartOpen ? renderChartDetailModal() : ''}
   `;
 }
 
@@ -1659,14 +1732,15 @@ function renderProgressTab(){
         <span class="legend-item"><span class="legend-dot" style="background:var(--effort);"></span>suas flexões</span>
         <span class="legend-item"><span class="legend-dash"></span>meta (100)</span>
       </div>
-      <div class="chart-scroll">${renderSingleSeriesChart(dateKey => getCount(dateKey, state.myId), 100, 'var(--effort)')}</div>
+      <p class="chart-hint">Toca no gráfico pra ver mais detalhes.</p>
+      <div class="chart-scroll chart-clickable" onclick="openChartDetail('you')">${renderSingleSeriesChart(dateKey => getCount(dateKey, state.myId), 100, 'var(--effort)')}</div>
     `
     : `
       <div class="legend">
         ${state.config.players.map((p,i)=>`<span class="legend-item"><span class="legend-dot" style="background:${playerChartColor(i)}"></span>${escapeHtml(p.name)}</span>`).join('')}
         <span class="legend-item"><span class="legend-dash"></span>meta (100)</span>
       </div>
-      <p class="chart-hint">Toca numa barra pra abrir o perfil da pessoa.</p>
+      <p class="chart-hint">Toca numa barra pra abrir o perfil da pessoa, ou <span class="chart-hint-link" onclick="openChartDetail('all')">vê o gráfico maior</span>.</p>
       <div class="chart-scroll">${renderMultiPlayerChart()}</div>
     `;
 
@@ -1700,12 +1774,13 @@ function renderProgressTab(){
       <span class="legend-item"><span class="legend-dot" style="background:var(--brass);"></span>total do grupo por dia</span>
       <span class="legend-item"><span class="legend-dash"></span>meta do grupo (${n * 100})</span>
     </div>
-    <div class="chart-scroll">${renderSingleSeriesChart(dateKey => computeGroupDailyTotal(dateKey), n * 100, 'var(--brass)')}</div>
+    <p class="chart-hint">Toca no gráfico pra ver mais detalhes.</p>
+    <div class="chart-scroll chart-clickable" onclick="openChartDetail('group')">${renderSingleSeriesChart(dateKey => computeGroupDailyTotal(dateKey), n * 100, 'var(--brass)')}</div>
   `;
 }
 
-function renderMultiPlayerChart(){
-  const days = lastNDaysAscending(14);
+function renderMultiPlayerChart(numDays){
+  const days = lastNDaysAscending(numDays || 14);
   const players = state.config.players;
   const barW = 8;
   const gap = 2;
@@ -1751,12 +1826,12 @@ function renderMultiPlayerChart(){
   `;
 }
 
-function renderSingleSeriesChart(getValueForDate, goalValue, barColorVar){
-  const days = lastNDaysAscending(14);
+function renderSingleSeriesChart(getValueForDate, goalValue, barColorVar, numDays, chartHeight){
+  const days = lastNDaysAscending(numDays || 14);
   const barW = 20;
   const gap = 12;
   const groupW = barW + gap;
-  const chartH = 150;
+  const chartH = chartHeight || 150;
   const marginTop = 24;
   const marginBottom = 22;
   const width = days.length*groupW + 10;
