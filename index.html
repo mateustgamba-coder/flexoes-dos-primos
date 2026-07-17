@@ -598,6 +598,15 @@ input[type=date]:focus{
   font-size:11px;
   fill:var(--chalk);
 }
+.linechart-grid{
+  stroke:var(--line);
+  stroke-width:1;
+}
+.linechart-ylabel, .linechart-xlabel{
+  font-family:'Space Mono',monospace;
+  font-size:10px;
+  fill:var(--chalk-soft);
+}
 .clickable-bar{cursor:pointer;}
 .clickable-bar:hover{opacity:0.75;}
 .chart-hint{
@@ -1219,7 +1228,7 @@ function render(){
 }
 
 function scrollChartsToEnd(){
-  document.querySelectorAll('.chart-scroll').forEach(el=>{
+  document.querySelectorAll('.chart-scroll:not(.no-autoscroll)').forEach(el=>{
     el.scrollLeft = el.scrollWidth;
   });
 }
@@ -1326,12 +1335,12 @@ function renderChartDetailModal(){
     title = escapeHtml(playerName(state.myId));
     subtitle = `últimos ${DAYS} dias · suas flexões`;
     legend = `<span class="legend-item"><span class="legend-dot" style="background:var(--effort);"></span>flexões</span><span class="legend-item"><span class="legend-dash"></span>meta (100)</span>`;
-    chart = renderSingleSeriesChart(dateKey => getCount(dateKey, state.myId), 100, 'var(--effort)', DAYS, 220);
+    chart = renderLineChart(dateKey => getCount(dateKey, state.myId), 100, 'var(--effort)', DAYS);
   } else if(kind === 'group'){
     title = 'Grupo';
     subtitle = `últimos ${DAYS} dias · total combinado de ${n} pessoa${n===1?'':'s'}`;
     legend = `<span class="legend-item"><span class="legend-dot" style="background:var(--brass);"></span>total do grupo</span><span class="legend-item"><span class="legend-dash"></span>meta do grupo (${n*100})</span>`;
-    chart = renderSingleSeriesChart(dateKey => computeGroupDailyTotal(dateKey), n*100, 'var(--brass)', DAYS, 220);
+    chart = renderLineChart(dateKey => computeGroupDailyTotal(dateKey), n*100, 'var(--brass)', DAYS);
   } else if(kind === 'all'){
     title = 'Todos';
     subtitle = `últimos ${DAYS} dias · cada barra é uma pessoa`;
@@ -1343,8 +1352,10 @@ function renderChartDetailModal(){
     title = escapeHtml(playerName(pid));
     subtitle = `últimos ${DAYS} dias`;
     legend = `<span class="legend-item"><span class="legend-dot" style="background:${color};"></span>flexões</span><span class="legend-item"><span class="legend-dash"></span>meta (100)</span>`;
-    chart = renderSingleSeriesChart(dateKey => getCount(dateKey, pid), 100, color, DAYS, 220);
+    chart = renderLineChart(dateKey => getCount(dateKey, pid), 100, color, DAYS);
   }
+
+  const scrollClass = (kind === 'all') ? 'chart-scroll' : 'chart-scroll no-autoscroll';
 
   return `
     <div class="modal-overlay" onclick="closeChartDetailIfOverlay(event)">
@@ -1352,7 +1363,7 @@ function renderChartDetailModal(){
         <h3>${title}</h3>
         <p class="tagline" style="margin-bottom:16px;">${subtitle}</p>
         <div class="legend">${legend}</div>
-        <div class="chart-scroll">${chart}</div>
+        <div class="${scrollClass}">${chart}</div>
         <div class="modal-actions">
           <button class="btn btn-ghost" onclick="closeChartDetail()">Fechar</button>
         </div>
@@ -1822,6 +1833,68 @@ function renderMultiPlayerChart(numDays){
     <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
       <line x1="0" y1="${goalY}" x2="${width}" y2="${goalY}" class="goal-line"></line>
       ${bars}
+    </svg>
+  `;
+}
+
+function renderLineChart(getValueForDate, goalValue, lineColor, numDays){
+  const days = lastNDaysAscending(numDays);
+  const width = 580;
+  const height = 260;
+  const marginLeft = 42;
+  const marginRight = 14;
+  const marginTop = 16;
+  const marginBottom = 30;
+  const plotW = width - marginLeft - marginRight;
+  const plotH = height - marginTop - marginBottom;
+
+  const values = days.map(d => getValueForDate(todayKey(d)));
+  let maxVal = Math.max(goalValue, 10, ...values);
+  const yTickCount = 5;
+  const niceMax = Math.max(25, Math.ceil((maxVal*1.1) / 25) * 25);
+
+  let gridLines = '';
+  let yLabels = '';
+  for(let t=0; t<=yTickCount; t++){
+    const val = Math.round((niceMax / yTickCount) * t);
+    const y = marginTop + plotH - (val/niceMax)*plotH;
+    gridLines += `<line x1="${marginLeft}" y1="${y}" x2="${width-marginRight}" y2="${y}" class="linechart-grid"></line>`;
+    yLabels += `<text x="${marginLeft-8}" y="${y+3}" class="linechart-ylabel" text-anchor="end">${val}</text>`;
+  }
+
+  const stepX = days.length > 1 ? plotW/(days.length-1) : 0;
+  const points = days.map((d,i)=>{
+    const v = values[i];
+    const x = marginLeft + i*stepX;
+    const y = marginTop + plotH - (v/niceMax)*plotH;
+    return {x, y, v, d};
+  });
+
+  const polylinePoints = points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+
+  const labelEvery = numDays <= 14 ? 1 : (numDays <= 30 ? 3 : 7);
+  let xLabels = '';
+  points.forEach((p,i)=>{
+    if(i % labelEvery === 0 || i === points.length-1){
+      xLabels += `<text x="${p.x}" y="${height-8}" class="linechart-xlabel" text-anchor="middle">${p.d.getDate()}/${String(p.d.getMonth()+1).padStart(2,'0')}</text>`;
+    }
+  });
+
+  const goalY = marginTop + plotH - (Math.min(goalValue,niceMax)/niceMax)*plotH;
+
+  let dots = '';
+  points.forEach(p=>{
+    dots += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${lineColor}"><title>${p.d.getDate()}/${String(p.d.getMonth()+1).padStart(2,'0')}: ${p.v}</title></circle>`;
+  });
+
+  return `
+    <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+      ${gridLines}
+      <line x1="${marginLeft}" y1="${goalY}" x2="${width-marginRight}" y2="${goalY}" class="goal-line"></line>
+      ${yLabels}
+      ${xLabels}
+      <polyline points="${polylinePoints}" fill="none" stroke="${lineColor}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></polyline>
+      ${dots}
     </svg>
   `;
 }
