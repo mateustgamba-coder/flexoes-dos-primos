@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>Flexões dos Primos</title>
-<meta name="theme-color" content="#17190F">
+<meta name="theme-color" content="#191C20">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,20 +13,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
 
 :root{
-  --bg: #17190F;
-  --surface: #1F2216;
-  --surface-2: #272B1D;
-  --line: #383C2C;
-  --chalk: #F3EFE2;
-  --chalk-soft: #96917F;
-  --effort: #E15A3E;
-  --effort-dark: #B8492F;
-  --brass: #D6AE55;
-  --c1: #E15A3E;
-  --c2: #D6AE55;
-  --c3: #8FA65A;
-  --c4: #6B9BC3;
-  --c5: #A47FC9;
+  --bg: #191C20;
+  --surface: #23272C;
+  --surface-2: #2B3036;
+  --line: #383D43;
+  --chalk: #F7F8FA;
+  --chalk-soft: #9199A2;
+  --effort: #FF3B30;
+  --effort-dark: #D9291F;
+  --brass: #4A6478;
+  --c1: #FF3B30;
+  --c2: #4A6478;
+  --c3: #C1673F;
+  --c4: #8C97A6;
+  --c5: #D9A441;
 }
 
 *{box-sizing:border-box;}
@@ -34,8 +34,8 @@ html,body{margin:0;padding:0;}
 body{
   background:var(--bg);
   background-image:
-    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(214,174,85,0.07), transparent),
-    radial-gradient(ellipse 700px 500px at 100% 20%, rgba(225,90,62,0.06), transparent);
+    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(74,100,120,0.08), transparent),
+    radial-gradient(ellipse 700px 500px at 100% 20%, rgba(255,59,48,0.06), transparent);
   color:var(--chalk);
   font-family:'Archivo',sans-serif;
   min-height:100vh;
@@ -744,7 +744,7 @@ let state = {
 };
 
 const PLAYER_COLORS = ['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c1)','var(--c2)','var(--c3)'];
-const CHART_COLORS = ['#E15A3E','#D6AE55','#8FA65A','#6B9BC3','#A47FC9','#E15A3E','#D6AE55','#8FA65A'];
+const CHART_COLORS = ['#FF3B30','#4A6478','#C1673F','#8C97A6','#D9A441','#FF3B30','#4A6478','#C1673F'];
 
 const WEEKDAYS = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
 const MONTHS = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
