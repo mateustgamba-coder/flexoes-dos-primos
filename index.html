@@ -1779,7 +1779,7 @@ function renderMain(){
       <button class="tab-btn${state.activeTab==='hoje'?' active':''}" onclick="switchTab('hoje')">Hoje</button>
       <button class="tab-btn${state.activeTab==='ranking'?' active':''}" onclick="switchTab('ranking')">Ranking</button>
       <button class="tab-btn${state.activeTab==='progresso'?' active':''}" onclick="switchTab('progresso')">Progresso</button>
-      <button class="tab-btn${state.activeTab==='mural'?' active':''}" onclick="switchTab('mural')">Mural</button>
+      <button class="tab-btn${state.activeTab==='mural'?' active':''}" onclick="switchTab('mural')">Chat</button>
     </div>
 
     ${state.activeTab === 'hoje' ? renderTodayTab() : state.activeTab === 'ranking' ? renderRankingTab() : state.activeTab === 'progresso' ? renderProgressTab() : renderMuralTab()}
