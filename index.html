@@ -785,6 +785,23 @@ input[type=date]:focus{
   padding:2.5px;
   background:var(--line);
   cursor:pointer;
+  position:relative;
+}
+.story-plus{
+  position:absolute;
+  bottom:-2px;
+  right:-2px;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:var(--effort);
+  color:var(--chalk);
+  font-size:13px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:2px solid var(--bg);
 }
 .story-ring.has-story{
   background:linear-gradient(135deg, var(--effort), var(--brass));
@@ -804,6 +821,88 @@ input[type=date]:focus{
   white-space:nowrap;
 }
 
+.story-viewer-overlay{
+  padding:0;
+  background:rgba(0,0,0,0.85);
+}
+.story-viewer{
+  width:100%;
+  max-width:420px;
+  height:100%;
+  max-height:800px;
+  background:var(--surface);
+  border-radius:16px;
+  display:flex;
+  flex-direction:column;
+  padding:16px;
+  overflow-y:auto;
+}
+.story-viewer-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:14px;
+}
+.story-viewer-avatar{width:34px; height:34px; font-size:12px; flex-shrink:0;}
+.story-viewer-meta{flex:1; min-width:0;}
+.story-viewer-name{font-size:14px; font-weight:700;}
+.story-viewer-time{
+  font-family:'Space Mono',monospace;
+  font-size:10px;
+  color:var(--chalk-soft);
+}
+.story-viewer-close{
+  background:transparent;
+  border:none;
+  color:var(--chalk-soft);
+  font-size:26px;
+  line-height:1;
+  cursor:pointer;
+  padding:4px;
+}
+.story-viewer-body{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  margin-bottom:16px;
+  min-height:280px;
+}
+.story-view-image{
+  width:100%;
+  max-height:480px;
+  object-fit:contain;
+  border-radius:12px;
+}
+.story-view-textcard{
+  width:100%;
+  min-height:280px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+}
+.story-view-text{
+  font-size:20px;
+  font-weight:700;
+  color:var(--bg);
+  text-align:center;
+  line-height:1.4;
+}
+.story-view-caption{
+  font-size:14px;
+  color:var(--chalk);
+  text-align:center;
+}
+.story-viewer-nav{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
 .mural-composer{
   background:var(--surface);
   border:1px solid var(--line);
@@ -815,9 +914,11 @@ input[type=date]:focus{
   display:flex;
   align-items:center;
   gap:8px;
+  flex-wrap:wrap;
 }
 .composer-row input[type=text]{
   flex:1;
+  min-width:140px;
   padding:10px 12px;
   font-size:14px;
 }
@@ -1062,6 +1163,7 @@ const db = firebase.firestore();
 const DOC_CONFIG = db.collection('flexoesDosPrimos').doc('config');
 const DOC_ENTRIES = db.collection('flexoesDosPrimos').doc('entries');
 const COL_MURAL = db.collection('flexoesDosPrimosMural');
+const COL_STORIES = db.collection('flexoesDosPrimosStories');
 const FieldValue = firebase.firestore.FieldValue;
 
 let state = {
@@ -1095,6 +1197,12 @@ let state = {
   pokeTarget: null,
   pokeText: '',
   pokeSending: false,
+  stories: [],
+  storyViewerPlayerId: null,
+  storyComposerOpen: false,
+  storyComposerText: '',
+  storyComposerImage: null,
+  storySending: false,
 };
 
 const PLAYER_COLORS = ['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c1)','var(--c2)','var(--c3)'];
@@ -1156,6 +1264,18 @@ function startListeners(){
     },
     (err) => {
       state.muralMessages = [];
+      render();
+    }
+  );
+
+  const storyCutoff = firebase.firestore.Timestamp.fromDate(new Date(Date.now() - 24*60*60*1000));
+  COL_STORIES.where('createdAt', '>', storyCutoff).orderBy('createdAt', 'desc').onSnapshot(
+    (snap) => {
+      state.stories = snap.docs.map(d => ({id: d.id, ...d.data()}));
+      render();
+    },
+    (err) => {
+      state.stories = [];
       render();
     }
   );
@@ -1605,14 +1725,110 @@ async function sendPoke(){
   render();
 }
 
-function postedToday(playerId){
-  const todayStr = todayKey();
-  return state.muralMessages.some(m => m.authorId === playerId && !m.targetId && m.createdAt && msgDateKey(m) === todayStr);
+function getLatestStory(playerId){
+  const list = state.stories.filter(s => s.authorId === playerId);
+  return list.length > 0 ? list[0] : null;
 }
 
-function msgDateKey(m){
-  if(!m.createdAt || !m.createdAt.toDate) return null;
-  return todayKey(m.createdAt.toDate());
+function playersWithActiveStory(){
+  return state.config.players.filter(p => getLatestStory(p.id));
+}
+
+function openStoryOrPoke(playerId){
+  const isMe = playerId === state.myId;
+  const story = getLatestStory(playerId);
+  if(story){
+    openStoryViewer(playerId);
+  } else if(isMe){
+    openStoryComposer();
+  } else {
+    openPoke(playerId);
+  }
+}
+
+function openStoryViewer(playerId){
+  state.storyViewerPlayerId = playerId;
+  state.error = null;
+  render();
+}
+function closeStoryViewer(){
+  state.storyViewerPlayerId = null;
+  render();
+}
+function closeStoryViewerIfOverlay(e){
+  if(e.target.classList.contains('modal-overlay')) closeStoryViewer();
+}
+function storyNav(dir){
+  const list = playersWithActiveStory();
+  if(list.length === 0) return;
+  const ids = list.map(p=>p.id);
+  let idx = ids.indexOf(state.storyViewerPlayerId);
+  if(idx === -1) idx = 0;
+  idx = (idx + dir + ids.length) % ids.length;
+  state.storyViewerPlayerId = ids[idx];
+  render();
+}
+function openStoryPoke(playerId){
+  closeStoryViewer();
+  openPoke(playerId);
+}
+
+function openStoryComposer(){
+  state.storyComposerOpen = true;
+  state.storyComposerText = '';
+  state.storyComposerImage = null;
+  state.error = null;
+  render();
+}
+function closeStoryComposer(){
+  state.storyComposerOpen = false;
+  render();
+}
+function closeStoryComposerIfOverlay(e){
+  if(e.target.classList.contains('modal-overlay')) closeStoryComposer();
+}
+async function onStoryImageSelected(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  try{
+    const dataUrl = await resizeImageFile(file, 900, 0.62);
+    state.storyComposerImage = dataUrl;
+    state.error = null;
+  }catch(e){
+    state.error = 'Não deu pra usar essa imagem. Tenta outra.';
+  }
+  render();
+}
+function removeStoryComposerImage(){
+  state.storyComposerImage = null;
+  render();
+}
+async function sendStory(){
+  const input = document.getElementById('story-composer-input');
+  const text = input ? input.value.trim() : '';
+  const image = state.storyComposerImage;
+  if(!text && !image){
+    state.error = 'Escreve algo ou anexa uma imagem antes de postar.';
+    render();
+    return;
+  }
+  state.storySending = true;
+  render();
+  try{
+    await COL_STORIES.add({
+      authorId: state.myId,
+      text: text,
+      image: image || null,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+    state.storyComposerOpen = false;
+    state.storyComposerImage = null;
+    state.error = null;
+  }catch(e){
+    state.error = 'Não deu pra postar o story. Confere sua conexão e tenta de novo.';
+  }
+  state.storySending = false;
+  render();
 }
 
 function formatMsgTime(m){
@@ -1811,6 +2027,8 @@ function renderMain(){
     ${state.profileId ? renderProfileModal() : ''}
     ${state.detailChartOpen ? renderChartDetailModal() : ''}
     ${state.pokeTarget ? renderPokeModal() : ''}
+    ${state.storyViewerPlayerId ? renderStoryViewer() : ''}
+    ${state.storyComposerOpen ? renderStoryComposerModal() : ''}
   `;
 }
 
@@ -2107,13 +2325,14 @@ function renderMuralTab(){
 }
 
 function renderStoryAvatar(p){
-  const posted = postedToday(p.id);
+  const posted = !!getLatestStory(p.id);
   const isMe = p.id === state.myId;
-  const action = isMe ? '' : `onclick="openPoke('${p.id}')"`;
+  const plusBadge = isMe ? `<div class="story-plus" onclick="event.stopPropagation(); openStoryComposer();">+</div>` : '';
   return `
     <div class="story-item">
-      <div class="story-ring${posted?' has-story':''}" ${action}>
+      <div class="story-ring${posted?' has-story':''}" onclick="openStoryOrPoke('${p.id}')">
         <div class="avatar-chip story-avatar">${initials(p.name)}</div>
+        ${plusBadge}
       </div>
       <div class="story-name">${isMe ? 'você' : escapeHtml(p.name)}</div>
     </div>
@@ -2129,9 +2348,13 @@ function renderMuralComposer(){
       ${imgPreview}
       <div class="composer-row">
         <input type="text" id="mural-composer-input" placeholder="Escreve algo pro grupo..." value="${escapeAttr(state.muralComposerText)}" oninput="state.muralComposerText=this.value">
-        <label class="composer-image-btn" aria-label="Anexar imagem">
-          <input type="file" accept="image/*" style="display:none;" onchange="onComposerImageSelected(this)">
+        <label class="composer-image-btn" aria-label="Tirar foto">
+          <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="onComposerImageSelected(this)">
           📷
+        </label>
+        <label class="composer-image-btn" aria-label="Escolher da galeria">
+          <input type="file" accept="image/*" style="display:none;" onchange="onComposerImageSelected(this)">
+          🖼️
         </label>
         <button class="btn btn-primary" onclick="sendMuralPost()" ${state.muralSending?'disabled':''}>${state.muralSending ? '...' : 'postar'}</button>
       </div>
@@ -2176,6 +2399,80 @@ function renderPokeModal(){
         <button class="btn btn-primary btn-block" onclick="sendPoke()" ${state.pokeSending?'disabled':''}>${state.pokeSending ? 'mandando...' : 'mandar'}</button>
         <div class="modal-actions">
           <button class="btn btn-ghost" onclick="closePoke()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderStoryViewer(){
+  const pid = state.storyViewerPlayerId;
+  const story = getLatestStory(pid);
+  if(!story){
+    return '';
+  }
+  const name = playerName(pid);
+  const isMe = pid === state.myId;
+  const color = playerColor(pid);
+  const content = story.image
+    ? `<img class="story-view-image" src="${story.image}">`
+    : `<div class="story-view-textcard" style="background:${color};"><div class="story-view-text">${escapeHtml(story.text)}</div></div>`;
+
+  return `
+    <div class="modal-overlay story-viewer-overlay" onclick="closeStoryViewerIfOverlay(event)">
+      <div class="story-viewer">
+        <div class="story-viewer-head">
+          <div class="avatar-chip story-viewer-avatar">${initials(name)}</div>
+          <div class="story-viewer-meta">
+            <div class="story-viewer-name">${escapeHtml(name)}${isMe ? '<span class="you-tag" style="margin-left:6px;">você</span>' : ''}</div>
+            <div class="story-viewer-time">${formatMsgTime(story)}</div>
+          </div>
+          <button class="story-viewer-close" onclick="closeStoryViewer()" aria-label="Fechar">×</button>
+        </div>
+
+        <div class="story-viewer-body">
+          ${content}
+          ${(story.image && story.text) ? `<div class="story-view-caption">${escapeHtml(story.text)}</div>` : ''}
+        </div>
+
+        <div class="story-viewer-nav">
+          <button class="btn btn-ghost" onclick="storyNav(-1)">‹ anterior</button>
+          <button class="btn btn-ghost" onclick="storyNav(1)">próximo ›</button>
+        </div>
+
+        ${!isMe ? `<button class="btn btn-outline btn-block" onclick="openStoryPoke('${pid}')">cutucar ${escapeHtml(name)}</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderStoryComposerModal(){
+  const imgPreview = state.storyComposerImage
+    ? `<div class="composer-preview"><img src="${state.storyComposerImage}"><button class="composer-preview-x" onclick="removeStoryComposerImage()" aria-label="Remover imagem">×</button></div>`
+    : '';
+  return `
+    <div class="modal-overlay" onclick="closeStoryComposerIfOverlay(event)">
+      <div class="modal">
+        <h3>Postar story</h3>
+        <p class="tagline" style="margin-bottom:16px;">Fica visível por 24 horas.</p>
+        ${imgPreview}
+        <div class="field">
+          <input type="text" id="story-composer-input" placeholder="Escreve algo (opcional se tiver foto)" autofocus>
+        </div>
+        <div class="composer-row" style="margin-bottom:16px;">
+          <label class="composer-image-btn" aria-label="Tirar foto">
+            <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="onStoryImageSelected(this)">
+            📷
+          </label>
+          <label class="composer-image-btn" aria-label="Escolher da galeria">
+            <input type="file" accept="image/*" style="display:none;" onchange="onStoryImageSelected(this)">
+            🖼️
+          </label>
+        </div>
+        ${state.error ? `<div class="error-banner">${state.error}</div>` : ''}
+        <button class="btn btn-primary btn-block" onclick="sendStory()" ${state.storySending?'disabled':''}>${state.storySending ? 'postando...' : 'postar story'}</button>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="closeStoryComposer()">Cancelar</button>
         </div>
       </div>
     </div>
