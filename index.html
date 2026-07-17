@@ -762,6 +762,145 @@ input[type=date]:focus{
   padding:20px 0;
 }
 
+/* ---- mural / stories ---- */
+.story-row{
+  display:flex;
+  gap:14px;
+  overflow-x:auto;
+  padding-bottom:14px;
+  margin-bottom:16px;
+  border-bottom:1px solid var(--line);
+}
+.story-item{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  flex-shrink:0;
+}
+.story-ring{
+  width:54px;
+  height:54px;
+  border-radius:50%;
+  padding:2.5px;
+  background:var(--line);
+  cursor:pointer;
+}
+.story-ring.has-story{
+  background:linear-gradient(135deg, var(--effort), var(--brass));
+}
+.story-avatar{
+  width:100%;
+  height:100%;
+  background:var(--surface);
+}
+.story-name{
+  font-family:'Space Mono',monospace;
+  font-size:10px;
+  color:var(--chalk-soft);
+  max-width:60px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.mural-composer{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px;
+  margin-bottom:18px;
+}
+.composer-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.composer-row input[type=text]{
+  flex:1;
+  padding:10px 12px;
+  font-size:14px;
+}
+.composer-image-btn{
+  font-size:18px;
+  cursor:pointer;
+  padding:8px;
+  border-radius:8px;
+  flex-shrink:0;
+}
+.composer-image-btn:hover{background:var(--surface-2);}
+.composer-preview{
+  position:relative;
+  display:inline-block;
+  margin-bottom:10px;
+}
+.composer-preview img{
+  max-width:120px;
+  max-height:120px;
+  border-radius:8px;
+  display:block;
+}
+.composer-preview-x{
+  position:absolute;
+  top:-8px;
+  right:-8px;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:var(--effort);
+  color:var(--chalk);
+  border:none;
+  font-size:14px;
+  line-height:1;
+  cursor:pointer;
+}
+
+.mural-feed{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.mural-card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px 14px;
+}
+.mural-card.poke{border-color:var(--brass);}
+.mural-card-head{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin-bottom:8px;
+}
+.mural-avatar{width:30px; height:30px; font-size:11px; flex-shrink:0;}
+.mural-card-meta{flex:1; min-width:0;}
+.mural-card-name{
+  font-size:13px;
+  font-weight:700;
+}
+.mural-poke-tag{
+  font-family:'Space Mono',monospace;
+  font-weight:400;
+  font-size:11px;
+  color:var(--brass);
+}
+.mural-card-time{
+  font-family:'Space Mono',monospace;
+  font-size:10px;
+  color:var(--chalk-soft);
+}
+.mural-card-text{
+  font-size:14px;
+  line-height:1.5;
+  margin-bottom:8px;
+}
+.mural-card-image{
+  max-width:100%;
+  border-radius:8px;
+  display:block;
+}
+
 /* ---- modal ---- */
 .modal-overlay{
   position:fixed; inset:0;
@@ -922,6 +1061,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const DOC_CONFIG = db.collection('flexoesDosPrimos').doc('config');
 const DOC_ENTRIES = db.collection('flexoesDosPrimos').doc('entries');
+const COL_MURAL = db.collection('flexoesDosPrimosMural');
 const FieldValue = firebase.firestore.FieldValue;
 
 let state = {
@@ -948,6 +1088,13 @@ let state = {
   topChartView: 'you',
   detailChartOpen: false,
   detailChartKind: null,
+  muralMessages: [],
+  muralComposerText: '',
+  muralComposerImage: null,
+  muralSending: false,
+  pokeTarget: null,
+  pokeText: '',
+  pokeSending: false,
 };
 
 const PLAYER_COLORS = ['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c1)','var(--c2)','var(--c3)'];
@@ -998,6 +1145,17 @@ function startListeners(){
     },
     (err) => {
       state.error = 'Não consegui carregar os registros. Confere sua conexão.';
+      render();
+    }
+  );
+
+  COL_MURAL.orderBy('createdAt', 'desc').limit(60).onSnapshot(
+    (snap) => {
+      state.muralMessages = snap.docs.map(d => ({id: d.id, ...d.data()}));
+      render();
+    },
+    (err) => {
+      state.muralMessages = [];
       render();
     }
   );
@@ -1336,6 +1494,139 @@ function closeChartDetailIfOverlay(e){
   if(e.target.classList.contains('modal-overlay')) closeChartDetail();
 }
 
+function resizeImageFile(file, maxDim, quality){
+  return new Promise((resolve, reject)=>{
+    if(!file.type || !file.type.startsWith('image/')){
+      reject(new Error('not an image'));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        let w = img.width, h = img.height;
+        if(w > h && w > maxDim){ h = Math.round(h*maxDim/w); w = maxDim; }
+        else if(h >= w && h > maxDim){ w = Math.round(w*maxDim/h); h = maxDim; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => reject(new Error('bad image'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('read error'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function onComposerImageSelected(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  try{
+    const dataUrl = await resizeImageFile(file, 900, 0.62);
+    state.muralComposerImage = dataUrl;
+    state.error = null;
+  }catch(e){
+    state.error = 'Não deu pra usar essa imagem. Tenta outra.';
+  }
+  render();
+}
+function removeComposerImage(){
+  state.muralComposerImage = null;
+  render();
+}
+
+async function sendMuralPost(){
+  const text = state.muralComposerText.trim();
+  const image = state.muralComposerImage;
+  if(!text && !image){
+    state.error = 'Escreve algo ou anexa uma imagem antes de postar.';
+    render();
+    return;
+  }
+  state.muralSending = true;
+  render();
+  try{
+    await COL_MURAL.add({
+      authorId: state.myId,
+      text: text,
+      image: image || null,
+      targetId: null,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+    state.muralComposerText = '';
+    state.muralComposerImage = null;
+    state.error = null;
+  }catch(e){
+    state.error = 'Não deu pra postar. Confere sua conexão e tenta de novo.';
+  }
+  state.muralSending = false;
+  render();
+}
+
+function openPoke(playerId){
+  state.pokeTarget = playerId;
+  state.pokeText = '';
+  state.error = null;
+  render();
+}
+function closePoke(){
+  state.pokeTarget = null;
+  render();
+}
+function closePokeIfOverlay(e){
+  if(e.target.classList.contains('modal-overlay')) closePoke();
+}
+async function sendPoke(){
+  const input = document.getElementById('poke-text-input');
+  const text = input ? input.value.trim() : '';
+  if(!text){
+    state.error = 'Escreve o que você quer mandar.';
+    render();
+    return;
+  }
+  state.pokeSending = true;
+  render();
+  try{
+    await COL_MURAL.add({
+      authorId: state.myId,
+      text: text,
+      image: null,
+      targetId: state.pokeTarget,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+    state.pokeTarget = null;
+    state.error = null;
+  }catch(e){
+    state.error = 'Não deu pra mandar. Confere sua conexão e tenta de novo.';
+  }
+  state.pokeSending = false;
+  render();
+}
+
+function postedToday(playerId){
+  const todayStr = todayKey();
+  return state.muralMessages.some(m => m.authorId === playerId && !m.targetId && m.createdAt && msgDateKey(m) === todayStr);
+}
+
+function msgDateKey(m){
+  if(!m.createdAt || !m.createdAt.toDate) return null;
+  return todayKey(m.createdAt.toDate());
+}
+
+function formatMsgTime(m){
+  if(!m.createdAt || !m.createdAt.toDate) return 'agora';
+  const d = m.createdAt.toDate();
+  const now = new Date();
+  const diffMin = Math.round((now - d) / 60000);
+  if(diffMin < 1) return 'agora';
+  if(diffMin < 60) return `há ${diffMin}min`;
+  const diffH = Math.round(diffMin/60);
+  if(diffH < 24) return `há ${diffH}h`;
+  return `${d.getDate()}/${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
 function renderChartDetailModal(){
   const kind = state.detailChartKind;
   const n = state.config.players.length;
@@ -1509,15 +1800,17 @@ function renderMain(){
       <button class="tab-btn${state.activeTab==='hoje'?' active':''}" onclick="switchTab('hoje')">Hoje</button>
       <button class="tab-btn${state.activeTab==='ranking'?' active':''}" onclick="switchTab('ranking')">Ranking</button>
       <button class="tab-btn${state.activeTab==='progresso'?' active':''}" onclick="switchTab('progresso')">Progresso</button>
+      <button class="tab-btn${state.activeTab==='mural'?' active':''}" onclick="switchTab('mural')">Mural</button>
     </div>
 
-    ${state.activeTab === 'hoje' ? renderTodayTab() : state.activeTab === 'ranking' ? renderRankingTab() : renderProgressTab()}
+    ${state.activeTab === 'hoje' ? renderTodayTab() : state.activeTab === 'ranking' ? renderRankingTab() : state.activeTab === 'progresso' ? renderProgressTab() : renderMuralTab()}
 
     ${state.settingsOpen ? renderSettingsModal() : ''}
     ${state.backdateOpen ? renderBackdateModal() : ''}
     ${state.celebrationOpen ? renderCelebrationModal() : ''}
     ${state.profileId ? renderProfileModal() : ''}
     ${state.detailChartOpen ? renderChartDetailModal() : ''}
+    ${state.pokeTarget ? renderPokeModal() : ''}
   `;
 }
 
@@ -1804,6 +2097,91 @@ function renderProgressTab(){
   `;
 }
 
+function renderMuralTab(){
+  return `
+    <div class="story-row">${state.config.players.map(p=>renderStoryAvatar(p)).join('')}</div>
+    ${state.error ? `<div class="error-banner">${state.error}</div>` : ''}
+    ${renderMuralComposer()}
+    <div class="mural-feed">${renderMuralFeed()}</div>
+  `;
+}
+
+function renderStoryAvatar(p){
+  const posted = postedToday(p.id);
+  const isMe = p.id === state.myId;
+  const action = isMe ? '' : `onclick="openPoke('${p.id}')"`;
+  return `
+    <div class="story-item">
+      <div class="story-ring${posted?' has-story':''}" ${action}>
+        <div class="avatar-chip story-avatar">${initials(p.name)}</div>
+      </div>
+      <div class="story-name">${isMe ? 'você' : escapeHtml(p.name)}</div>
+    </div>
+  `;
+}
+
+function renderMuralComposer(){
+  const imgPreview = state.muralComposerImage
+    ? `<div class="composer-preview"><img src="${state.muralComposerImage}"><button class="composer-preview-x" onclick="removeComposerImage()" aria-label="Remover imagem">×</button></div>`
+    : '';
+  return `
+    <div class="mural-composer">
+      ${imgPreview}
+      <div class="composer-row">
+        <input type="text" id="mural-composer-input" placeholder="Escreve algo pro grupo..." value="${escapeAttr(state.muralComposerText)}" oninput="state.muralComposerText=this.value">
+        <label class="composer-image-btn" aria-label="Anexar imagem">
+          <input type="file" accept="image/*" style="display:none;" onchange="onComposerImageSelected(this)">
+          📷
+        </label>
+        <button class="btn btn-primary" onclick="sendMuralPost()" ${state.muralSending?'disabled':''}>${state.muralSending ? '...' : 'postar'}</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderMuralFeed(){
+  if(state.muralMessages.length === 0){
+    return `<p class="empty-note">Ninguém postou nada ainda. Seja o primeiro.</p>`;
+  }
+  return state.muralMessages.map(m=>{
+    const author = playerName(m.authorId);
+    const isPoke = !!m.targetId;
+    const targetName = isPoke ? playerName(m.targetId) : '';
+    return `
+      <div class="mural-card${isPoke?' poke':''}">
+        <div class="mural-card-head">
+          <div class="avatar-chip mural-avatar">${initials(author)}</div>
+          <div class="mural-card-meta">
+            <div class="mural-card-name">${escapeHtml(author)}${isPoke ? ` <span class="mural-poke-tag">cutucou ${escapeHtml(targetName)}</span>` : ''}</div>
+            <div class="mural-card-time">${formatMsgTime(m)}</div>
+          </div>
+        </div>
+        ${m.text ? `<div class="mural-card-text">${escapeHtml(m.text)}</div>` : ''}
+        ${m.image ? `<img class="mural-card-image" src="${m.image}">` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function renderPokeModal(){
+  const name = playerName(state.pokeTarget);
+  return `
+    <div class="modal-overlay" onclick="closePokeIfOverlay(event)">
+      <div class="modal">
+        <h3>Cutucar ${escapeHtml(name)}</h3>
+        <div class="field">
+          <input type="text" id="poke-text-input" placeholder="Escreve o que quiser mandar" autofocus>
+        </div>
+        ${state.error ? `<div class="error-banner">${state.error}</div>` : ''}
+        <button class="btn btn-primary btn-block" onclick="sendPoke()" ${state.pokeSending?'disabled':''}>${state.pokeSending ? 'mandando...' : 'mandar'}</button>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="closePoke()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderMultiPlayerChart(numDays){
   const days = lastNDaysAscending(numDays || 14);
   const players = state.config.players;
@@ -1994,14 +2372,16 @@ function renderSettingsModal(){
         </div>
 
         <div class="danger-zone">
-          <p>Isso apaga todo o histórico de flexões de todo mundo. Não dá pra desfazer.</p>
-          ${state.confirmReset
-            ? `<div style="display:flex; gap:8px;">
-                 <button class="btn btn-primary" onclick="resetAll()">Confirmar zerar tudo</button>
-                 <button class="btn btn-ghost" onclick="cancelReset()">Cancelar</button>
-               </div>`
-            : `<button class="btn btn-outline" onclick="askReset()">Zerar todo o histórico</button>`
-          }
+          <p style="margin-bottom:10px;">Corrigir suas próprias flexões (só você mexe no seu registro).</p>
+          <div class="field">
+            <label class="field-label">Data</label>
+            <input type="date" id="adjust-date" value="${todayKey()}" max="${todayKey()}">
+          </div>
+          <div class="custom-row">
+            <input type="number" id="adjust-amount" placeholder="Quantidade a remover" min="1" max="9999">
+            <button class="btn btn-outline" onclick="adjustMyEntry('subtract')">remover</button>
+          </div>
+          <button class="btn btn-ghost" onclick="adjustMyEntry('zero')" style="padding-left:0;">zerar esse dia inteiro</button>
         </div>
 
         ${state.error ? `<div class="error-banner">${state.error}</div>` : ''}
@@ -2047,17 +2427,49 @@ function toggleSettings(){
   state.confirmReset = false;
   render();
 }
-function askReset(){ state.confirmReset = true; render(); }
-function cancelReset(){ state.confirmReset = false; render(); }
+async function adjustMyEntry(mode){
+  const dateInput = document.getElementById('adjust-date');
+  const amountInput = document.getElementById('adjust-amount');
+  const dateVal = dateInput ? dateInput.value : '';
+  const todayStr = todayKey();
 
-async function resetAll(){
-  state.confirmReset = false;
-  state.settingsOpen = false;
-  try{
-    await DOC_ENTRIES.set({days: {}});
-  }catch(e){
-    state.error = 'Não deu pra zerar. Tenta de novo.';
+  if(!dateVal){
+    state.error = 'Escolhe uma data.';
+    render();
+    return;
   }
+  if(dateVal > todayStr){
+    state.error = 'Não dá pra ajustar um dia futuro.';
+    render();
+    return;
+  }
+
+  if(mode === 'zero'){
+    const current = getCount(dateVal, state.myId);
+    if(current === 0){
+      state.error = 'Já está zerado nesse dia.';
+      render();
+      return;
+    }
+    await addReps(state.myId, -current, dateVal);
+  } else {
+    const amount = parseInt(amountInput ? amountInput.value : '', 10);
+    if(isNaN(amount) || amount <= 0){
+      state.error = 'Coloca uma quantidade válida.';
+      render();
+      return;
+    }
+    const current = getCount(dateVal, state.myId);
+    const toRemove = Math.min(amount, current);
+    if(toRemove <= 0){
+      state.error = 'Não tem flexões pra remover nesse dia.';
+      render();
+      return;
+    }
+    await addReps(state.myId, -toRemove, dateVal);
+  }
+  state.error = null;
+  if(amountInput) amountInput.value = '';
   render();
 }
 
