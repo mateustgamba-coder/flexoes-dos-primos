@@ -234,6 +234,30 @@ input[type=date]:focus{
   background:var(--effort);
 }
 
+.progress-toggle{
+  display:inline-flex;
+  background:var(--surface-2);
+  border-radius:10px;
+  padding:3px;
+  gap:2px;
+  margin-bottom:18px;
+}
+.progress-toggle-btn{
+  font-family:'Archivo',sans-serif;
+  font-weight:700;
+  font-size:12px;
+  background:transparent;
+  border:none;
+  color:var(--chalk-soft);
+  padding:8px 14px;
+  border-radius:8px;
+  cursor:pointer;
+}
+.progress-toggle-btn.active{
+  background:var(--surface);
+  color:var(--chalk);
+}
+
 /* ---- my board (full) ---- */
 .board{
   background:var(--surface);
@@ -741,7 +765,8 @@ input[type=date]:focus{
 }
 
 .clickable-name{cursor:pointer;}
-.clickable-name:hover .roster-name, .clickable-name:hover .rank-card-name{color:var(--brass);}
+.clickable-name:hover{color:var(--brass);}
+.clickable-name:hover .roster-name{color:var(--brass);}
 
 .profile-header{
   display:flex;
@@ -881,6 +906,7 @@ let state = {
   celebrationTotal: 0,
   celebrationTied: false,
   profileId: null,
+  progressView: 'you',
 };
 
 const PLAYER_COLORS = ['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c1)','var(--c2)','var(--c3)'];
@@ -1118,6 +1144,11 @@ function switchTab(tab){
   render();
 }
 
+function switchProgressView(view){
+  state.progressView = view;
+  render();
+}
+
 function tallyMarkup(count){
   const groupsFull = Math.floor(Math.min(count,100)/5);
   const remainder = Math.min(count,100) % 5;
@@ -1166,6 +1197,13 @@ function render(){
   }
   checkCelebration();
   app.innerHTML = renderMain();
+  requestAnimationFrame(scrollChartsToEnd);
+}
+
+function scrollChartsToEnd(){
+  document.querySelectorAll('.chart-scroll').forEach(el=>{
+    el.scrollLeft = el.scrollWidth;
+  });
 }
 
 function computeYesterdayChampions(){
@@ -1525,7 +1563,7 @@ function renderRankingTab(){
     podium = `<div class="podium">` + podiumOrder.map((p,i)=>`
       <div class="podium-col ${podiumClass[i]}">
         <div class="podium-emoji">${rankEmoji(ranked.indexOf(p), n, p.total)}</div>
-        <div class="podium-name">${escapeHtml(p.name)}</div>
+        <div class="podium-name clickable-name" onclick="openProfile('${p.id}')">${escapeHtml(p.name)}</div>
         <div class="podium-title">${rankTitle(ranked.indexOf(p), n, p.total)}</div>
         <div class="podium-block">
           <div class="podium-total">${p.total}</div>
@@ -1605,9 +1643,9 @@ function renderProgressTab(){
   const activeToday = state.config.players.filter(p => getCount(todayStr, p.id) > 0).length;
   const n = state.config.players.length;
   const avgPerPerson = n > 0 ? Math.round(groupTotal / n) : 0;
+  const view = state.progressView || 'you';
 
-  return `
-    <h2 class="section-title">Seu progresso</h2>
+  const youSection = `
     <div class="stat-grid">
       <div class="stat-card">
         <div class="stat-name clickable-name" onclick="openProfile('${state.myId}')">${escapeHtml(playerName(state.myId))}</div>
@@ -1621,8 +1659,9 @@ function renderProgressTab(){
       <span class="legend-item"><span class="legend-dash"></span>meta (100)</span>
     </div>
     <div class="chart-scroll">${renderSingleSeriesChart(dateKey => getCount(dateKey, state.myId), 100, 'var(--effort)')}</div>
+  `;
 
-    <h2 class="section-title" style="margin-top:30px;">Grupo · ${n} pessoa${n===1?'':'s'}</h2>
+  const groupSection = `
     <div class="stat-grid">
       <div class="stat-card">
         <div class="stat-row"><span class="stat-num">${groupTotal}</span><span class="stat-label">flexões do grupo, no total</span></div>
@@ -1635,6 +1674,15 @@ function renderProgressTab(){
       <span class="legend-item"><span class="legend-dash"></span>meta do grupo (${n * 100})</span>
     </div>
     <div class="chart-scroll">${renderSingleSeriesChart(dateKey => computeGroupDailyTotal(dateKey), n * 100, 'var(--brass)')}</div>
+  `;
+
+  return `
+    <div class="progress-toggle">
+      <button class="progress-toggle-btn${view==='you'?' active':''}" onclick="switchProgressView('you')">Você</button>
+      <button class="progress-toggle-btn${view==='group'?' active':''}" onclick="switchProgressView('group')">Grupo · ${n} pessoa${n===1?'':'s'}</button>
+    </div>
+    <h2 class="section-title">${view==='you' ? 'Seu progresso' : `Grupo · ${n} pessoa${n===1?'':'s'}`}</h2>
+    ${view==='you' ? youSection : groupSection}
   `;
 }
 
