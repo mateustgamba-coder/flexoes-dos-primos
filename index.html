@@ -283,6 +283,17 @@ input[type=date]:focus{
   color:var(--brass);
   margin:-8px 0 12px;
 }
+.champ-badge{
+  display:inline-block;
+  font-family:'Space Mono',monospace;
+  font-size:11px;
+  font-weight:700;
+  color:var(--bg);
+  background:var(--brass);
+  padding:4px 10px;
+  border-radius:20px;
+  margin-bottom:14px;
+}
 .tally-wrap{
   display:flex;
   flex-wrap:wrap;
@@ -543,6 +554,12 @@ input[type=date]:focus{
   font-size:9px;
   fill:var(--chalk-soft);
 }
+.chart-value-label{
+  font-family:'Space Mono',monospace;
+  font-weight:700;
+  font-size:11px;
+  fill:var(--chalk);
+}
 
 /* ---- avatar chip (scales to any number of people) ---- */
 .avatar-chip{
@@ -685,6 +702,18 @@ input[type=date]:focus{
 .danger-zone{margin-top:22px; padding-top:18px; border-top:1px solid var(--line);}
 .danger-zone p{font-size:12px; color:var(--chalk-soft); margin-bottom:10px;}
 
+.celebration-modal{
+  text-align:center;
+  border:2px solid var(--brass);
+}
+.celebration-emoji{
+  font-size:52px;
+  margin-bottom:6px;
+}
+.celebration-modal h3{
+  text-align:center;
+}
+
 .error-banner{
   background:rgba(225,90,62,0.12);
   border:1px solid var(--effort);
@@ -752,6 +781,10 @@ let state = {
   backdateAmount: '',
   searchToday: '',
   searchRanking: '',
+  hasCheckedCelebration: false,
+  celebrationOpen: false,
+  celebrationTotal: 0,
+  celebrationTied: false,
 };
 
 const PLAYER_COLORS = ['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c1)','var(--c2)','var(--c3)'];
@@ -1035,7 +1068,72 @@ function render(){
     app.innerHTML = renderIdentity();
     return;
   }
+  checkCelebration();
   app.innerHTML = renderMain();
+}
+
+function computeYesterdayChampions(){
+  const d = new Date();
+  d.setDate(d.getDate()-1);
+  const yKey = todayKey(d);
+  let max = 0;
+  state.config.players.forEach(p=>{
+    const c = getCount(yKey, p.id);
+    if(c > max) max = c;
+  });
+  if(max === 0) return [];
+  return state.config.players.filter(p => getCount(yKey, p.id) === max).map(p => p.id);
+}
+
+function checkCelebration(){
+  if(state.hasCheckedCelebration) return;
+  state.hasCheckedCelebration = true;
+
+  const champs = computeYesterdayChampions();
+  if(!champs.includes(state.myId)) return;
+
+  const d = new Date();
+  d.setDate(d.getDate()-1);
+  const yKey = todayKey(d);
+  const flagKey = 'flexoes_celebrated_'+yKey;
+
+  try{
+    if(localStorage.getItem(flagKey)) return;
+    localStorage.setItem(flagKey, '1');
+  }catch(e){
+    return;
+  }
+
+  state.celebrationOpen = true;
+  state.celebrationTotal = getCount(yKey, state.myId);
+  state.celebrationTied = champs.length > 1;
+}
+
+function closeCelebration(){
+  state.celebrationOpen = false;
+  render();
+}
+
+function renderCelebrationModal(){
+  return `
+    <div class="modal-overlay" onclick="closeCelebrationIfOverlay(event)">
+      <div class="modal celebration-modal">
+        <div class="celebration-emoji">👑</div>
+        <h3>Você foi o General de ontem!</h3>
+        <p class="tagline" style="margin-bottom:4px;">
+          ${state.celebrationTied
+            ? `Você empatou em ${state.celebrationTotal} flexões, o maior número de ontem.`
+            : `Foram ${state.celebrationTotal} flexões — mais que qualquer outro primo ontem.`
+          }
+        </p>
+        <p class="tagline" style="margin-bottom:20px;">Bora manter esse ritmo hoje?</p>
+        <button class="btn btn-primary btn-block" onclick="closeCelebration()">Bora hoje também</button>
+      </div>
+    </div>
+  `;
+}
+function closeCelebrationIfOverlay(e){
+  if(e.target.classList.contains('modal-overlay')) closeCelebration();
 }
 
 function renderSetup(){
@@ -1121,6 +1219,7 @@ function renderMain(){
 
     ${state.settingsOpen ? renderSettingsModal() : ''}
     ${state.backdateOpen ? renderBackdateModal() : ''}
+    ${state.celebrationOpen ? renderCelebrationModal() : ''}
   `;
 }
 
@@ -1141,6 +1240,7 @@ function buildRosterRows(){
   const others = state.config.players.filter(p=>p.id!==state.myId);
   const todayStr = todayKey();
   const q = state.searchToday.trim().toLowerCase();
+  const champs = computeYesterdayChampions();
 
   let list = others.map(p=>({
     ...p,
@@ -1157,11 +1257,12 @@ function buildRosterRows(){
   return list.map(p=>{
     const hit = p.count >= 100;
     const pct = Math.min(100, p.count);
+    const isChamp = champs.includes(p.id);
     return `
       <div class="roster-row${hit?' hit':''}">
         <div class="avatar-chip">${initials(p.name)}</div>
         <div class="roster-mid">
-          <div class="roster-name">${escapeHtml(p.name)}</div>
+          <div class="roster-name">${escapeHtml(p.name)}${isChamp ? ' <span title="campeão de ontem">👑</span>' : ''}</div>
           <div class="roster-bar-track"><div class="roster-bar-fill" style="width:${pct}%; background:${hit?'var(--brass)':'var(--effort)'};"></div></div>
         </div>
         <div class="roster-count">${p.count}${p.streak>0?`<span class="roster-streak">🔥${p.streak}</span>`:''}</div>
@@ -1181,6 +1282,7 @@ function renderMyBoard(playerId){
   const hit = count >= 100;
   const streak = computeStreak(playerId);
   const bonus = Math.max(0, count-100);
+  const isChamp = computeYesterdayChampions().includes(playerId);
 
   return `
     <div class="board${hit?' hit':''}">
@@ -1190,6 +1292,7 @@ function renderMyBoard(playerId){
         </div>
         ${streak > 0 ? `<div class="streak-tag">🔥 ${streak} dia${streak>1?'s':''}</div>` : ''}
       </div>
+      ${isChamp ? `<div class="champ-badge">👑 campeão de ontem</div>` : ''}
       <div class="big-num">${count}</div>
       <div class="big-num-suffix">de 100 hoje</div>
       ${bonus > 0 ? `<div class="bonus-note">+${bonus} além da meta</div>` : ''}
@@ -1384,7 +1487,7 @@ function renderSingleSeriesChart(getValueForDate, goalValue, barColorVar){
   const gap = 12;
   const groupW = barW + gap;
   const chartH = 150;
-  const marginTop = 10;
+  const marginTop = 24;
   const marginBottom = 22;
   const width = days.length*groupW + 10;
   const height = chartH + marginTop + marginBottom;
@@ -1405,7 +1508,9 @@ function renderSingleSeriesChart(getValueForDate, goalValue, barColorVar){
     const x = 5 + i*groupW;
     const h = (val/maxVal)*chartH;
     const y = marginTop + chartH - h;
+    const labelY = Math.max(12, y - 6);
     bars += `<rect x="${x}" y="${y}" width="${barW}" height="${h}" rx="3" fill="${barColorVar}"></rect>`;
+    bars += `<text x="${x+barW/2}" y="${labelY}" class="chart-value-label" text-anchor="middle">${val}</text>`;
     bars += `<text x="${x+barW/2}" y="${height-6}" class="chart-label" text-anchor="middle">${d.getDate()}</text>`;
   });
 
