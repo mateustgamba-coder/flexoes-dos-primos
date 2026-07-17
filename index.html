@@ -1374,6 +1374,14 @@ function renderSettingsModal(){
         <button class="btn btn-primary btn-block" onclick="saveNames()">Salvar nomes</button>
 
         <div class="danger-zone">
+          <p style="margin-bottom:10px;">Adicionar uma nova pessoa ao desafio.</p>
+          <div class="setup-player-row">
+            <input type="text" id="new-member-name" placeholder="Nome da nova pessoa">
+            <button class="remove-player" onclick="addMember()" aria-label="Adicionar" style="color:var(--chalk); font-size:22px;">+</button>
+          </div>
+        </div>
+
+        <div class="danger-zone">
           <p>Isso apaga todo o histórico de flexões de todo mundo. Não dá pra desfazer.</p>
           ${state.confirmReset
             ? `<div style="display:flex; gap:8px;">
@@ -1383,6 +1391,8 @@ function renderSettingsModal(){
             : `<button class="btn btn-outline" onclick="askReset()">Zerar todo o histórico</button>`
           }
         </div>
+
+        ${state.error ? `<div class="error-banner">${state.error}</div>` : ''}
 
         <div class="modal-actions">
           <button class="btn btn-ghost" onclick="toggleSettings()">Fechar</button>
@@ -1437,6 +1447,22 @@ async function resetAll(){
     state.error = 'Não deu pra zerar. Tenta de novo.';
   }
   render();
+}
+
+async function addMember(){
+  const input = document.getElementById('new-member-name');
+  const name = input ? input.value.trim() : '';
+  if(!name){
+    state.error = 'Coloca um nome pra adicionar.';
+    render();
+    return;
+  }
+  const existingIds = state.config.players.map(p => parseInt(p.id.replace('p',''), 10));
+  const nextNum = Math.max(0, ...existingIds) + 1;
+  const newPlayer = {id: 'p'+nextNum, name};
+  const players = [...state.config.players, newPlayer];
+  state.error = null;
+  await saveConfig({players});
 }
 
 async function saveNames(){
