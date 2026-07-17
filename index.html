@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>Flexões dos Primos</title>
-<meta name="theme-color" content="#191C20">
+<meta name="theme-color" content="#0B0D11">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,10 +16,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
 
 :root{
-  --bg: #191C20;
-  --surface: #23272C;
-  --surface-2: #2B3036;
-  --line: #383D43;
+  --bg: #0B0D11;
+  --surface: #15181D;
+  --surface-2: #1D2127;
+  --line: #2C3138;
   --chalk: #F7F8FA;
   --chalk-soft: #9199A2;
   --effort: #FF3B30;
@@ -433,6 +433,20 @@ input[type=date]:focus{
   font-size:22px;
   min-width:44px;
 }
+.rank-medal{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  font-size:15px;
+  line-height:1;
+}
+.rank-medal-gold{background:var(--brass);}
+.rank-medal-silver{background:#B7BFC6;}
+.rank-medal-bronze{background:#B5713F;}
+.rank-medal-none{background:transparent; font-size:20px;}
 .rank-card-num{
   font-family:'Anton',sans-serif;
   font-size:13px;
@@ -633,6 +647,7 @@ input[type=date]:focus{
   padding:9px 12px;
 }
 .roster-row.hit{border-color:var(--brass);}
+.roster-row.champ{border-color:var(--brass); background:rgba(214,174,85,0.06);}
 .roster-mid{flex:1; min-width:0;}
 .roster-name{
   font-size:13px;
@@ -641,6 +656,17 @@ input[type=date]:focus{
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
+}
+.champ-badge-sm{
+  display:inline-block;
+  font-family:'Space Mono',monospace;
+  font-size:9px;
+  font-weight:700;
+  color:var(--bg);
+  background:var(--brass);
+  padding:2px 7px;
+  border-radius:20px;
+  margin-bottom:5px;
 }
 .roster-bar-track{
   height:5px;
@@ -1246,9 +1272,13 @@ function buildRosterRows(){
     ...p,
     count: getCount(todayStr, p.id),
     streak: computeStreak(p.id),
+    isChamp: champs.includes(p.id),
   }));
   if(q) list = list.filter(p => p.name.toLowerCase().includes(q));
-  list.sort((a,b) => b.count - a.count || a.name.localeCompare(b.name));
+  list.sort((a,b) => {
+    if(a.isChamp !== b.isChamp) return b.isChamp - a.isChamp;
+    return b.count - a.count || a.name.localeCompare(b.name);
+  });
 
   if(list.length === 0){
     return `<p class="empty-note">${q ? 'Ninguém com esse nome.' : 'Só você no desafio por enquanto.'}</p>`;
@@ -1257,12 +1287,12 @@ function buildRosterRows(){
   return list.map(p=>{
     const hit = p.count >= 100;
     const pct = Math.min(100, p.count);
-    const isChamp = champs.includes(p.id);
     return `
-      <div class="roster-row${hit?' hit':''}">
+      <div class="roster-row${hit?' hit':''}${p.isChamp?' champ':''}">
         <div class="avatar-chip">${initials(p.name)}</div>
         <div class="roster-mid">
-          <div class="roster-name">${escapeHtml(p.name)}${isChamp ? ' <span title="campeão de ontem">👑</span>' : ''}</div>
+          <div class="roster-name">${escapeHtml(p.name)}</div>
+          ${p.isChamp ? `<div class="champ-badge-sm">👑 campeão do dia anterior</div>` : ''}
           <div class="roster-bar-track"><div class="roster-bar-fill" style="width:${pct}%; background:${hit?'var(--brass)':'var(--effort)'};"></div></div>
         </div>
         <div class="roster-count">${p.count}${p.streak>0?`<span class="roster-streak">🔥${p.streak}</span>`:''}</div>
@@ -1343,12 +1373,11 @@ function rankTitle(pos, totalPlayers, total){
   return 'Soldado';
 }
 function rankEmoji(pos, totalPlayers, total){
-  if(total === 0) return '🏳️';
-  if(pos === 0) return '⭐';
-  if(pos === 1) return '🥈';
-  if(pos === 2) return '🥉';
-  if(pos === totalPlayers-1) return '🪖';
-  return '🎖️';
+  if(total === 0) return `<span class="rank-medal rank-medal-none">🏳️</span>`;
+  if(pos === 0) return `<span class="rank-medal rank-medal-gold">🎖️</span>`;
+  if(pos === 1) return `<span class="rank-medal rank-medal-silver">🎖️</span>`;
+  if(pos === 2) return `<span class="rank-medal rank-medal-bronze">🎖️</span>`;
+  return '';
 }
 
 function renderRankingTab(){
