@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Warden — App Concept Preview</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Warden</title>
+<meta name="theme-color" content="#1F2A44">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -11,190 +12,123 @@
     --navy:#1F2A44;
     --navy-deep:#141C30;
     --cream:#F3EDE2;
-    --cream-dim:#DCD4C4;
     --amber:#D08C3A;
     --amber-bright:#E0A458;
-    --petrol:#1E3A3A;
     --sage:#DDE6DF;
-    --ink:#10182B;
     --line: rgba(243,237,226,0.10);
-    --line-soft: rgba(16,24,43,0.08);
     box-sizing:border-box;
   }
-  *{box-sizing:inherit; margin:0; padding:0;}
-  html,body{height:100%;}
+  *{box-sizing:inherit; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    height:100vh; height:100dvh;
+    overflow:hidden;
+    overscroll-behavior:none;
+    background:var(--navy-deep);
+  }
   body{
     font-family:'DM Sans', sans-serif;
-    background:
-      radial-gradient(circle at 20% 15%, rgba(224,164,88,0.12), transparent 45%),
-      radial-gradient(circle at 80% 85%, rgba(30,58,58,0.4), transparent 50%),
-      var(--navy-deep);
-    min-height:100%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:40px 16px;
     color:var(--cream);
+    touch-action:manipulation;
   }
 
-  .stage{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:22px;
-    width:100%;
-    max-width:400px;
-  }
-
-  .stage-label{
-    font-size:11px;
-    letter-spacing:0.14em;
-    color:rgba(243,237,226,0.45);
-    display:flex;
-    align-items:center;
-    gap:8px;
-  }
-  .stage-label .dot{width:6px;height:6px;border-radius:50%;background:var(--amber-bright);}
-
-  /* ---- tabs: single scrollable row, never clipped ---- */
-  .tabs{
-    display:flex;
-    gap:6px;
-    background:rgba(255,255,255,0.05);
-    border:1px solid var(--line);
-    padding:4px;
-    border-radius:12px;
-    width:100%;
-    max-width:100%;
-    overflow-x:auto;
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
-  }
-  .tabs::-webkit-scrollbar{ display:none; }
-  .tabs button{
-    appearance:none;
-    border:none;
-    background:transparent;
-    color:rgba(243,237,226,0.55);
-    font-family:inherit;
-    font-size:12.5px;
-    font-weight:600;
-    padding:8px 12px;
-    border-radius:9px;
-    cursor:pointer;
-    transition:background .2s ease, color .2s ease;
-    white-space:nowrap;
-    flex:0 0 auto;
-  }
-  .tabs button.active{
-    background:var(--amber);
-    color:var(--navy-deep);
-  }
-
-  /* ---- phone frame ---- */
-  .phone{
-    width:340px;
-    height:700px;
-    background:var(--navy);
-    border-radius:44px;
-    border:10px solid #0C1220;
-    box-shadow:
-      0 30px 60px -20px rgba(0,0,0,0.6),
-      0 0 0 1px rgba(255,255,255,0.03) inset;
+  .app-root{
     position:relative;
+    height:100vh; height:100dvh;
+    width:100%;
+    max-width:480px;
+    margin:0 auto;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(224,164,88,0.10), transparent 45%),
+      radial-gradient(circle at 100% 100%, rgba(30,58,58,0.35), transparent 55%),
+      var(--navy);
     overflow:hidden;
   }
-  .notch{
+
+  .preview-tag{
     position:absolute;
-    top:10px; left:50%; transform:translateX(-50%);
-    width:120px; height:22px;
-    background:#0C1220;
-    border-radius:0 0 16px 16px;
-    z-index:20;
+    top:calc(env(safe-area-inset-top,0px) + 8px);
+    right:12px;
+    font-size:9px;
+    letter-spacing:0.08em;
+    color:rgba(243,237,226,0.32);
+    z-index:25;
+    pointer-events:none;
   }
+
   .screen{
     position:absolute; inset:0;
-    padding:54px 22px 26px;
+    padding: calc(env(safe-area-inset-top,0px) + 20px) 20px calc(env(safe-area-inset-bottom,0px) + 96px);
     display:none;
     flex-direction:column;
-    animation:fade .35s ease;
     overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    animation:fade .3s ease;
   }
-  .screen.active{display:flex;}
+  .screen.active{ display:flex; }
   @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
 
+  /* ---- bottom nav ---- */
+  .bottom-nav{
+    position:absolute; left:0; right:0; bottom:0;
+    display:flex;
+    background:rgba(15,20,34,0.9);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border-top:1px solid var(--line);
+    padding: 8px 4px calc(env(safe-area-inset-bottom,0px) + 8px);
+    z-index:30;
+  }
+  .bottom-nav button{
+    flex:1;
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    background:none; border:none; font-family:inherit;
+    color:rgba(243,237,226,0.45);
+    font-size:10px; font-weight:600;
+    padding:5px 2px;
+    cursor:pointer;
+  }
+  .bottom-nav button .nav-icon{ font-size:18px; line-height:1; }
+  .bottom-nav button.active{ color:var(--amber-bright); }
+
   /* ---- shared bits ---- */
-  .eye-badge{
-    width:30px; height:30px;
-    display:flex; align-items:center; justify-content:center;
-    flex-shrink:0;
-  }
-  .top-row{
-    display:flex; align-items:center; justify-content:space-between;
-    margin-bottom:22px;
-  }
-  .brand-mark{
-    display:flex; align-items:center; gap:8px;
-    font-weight:700; font-size:16px; letter-spacing:-0.01em;
-  }
+  .eye-badge{ width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .top-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; }
+  .brand-mark{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:16px; letter-spacing:-0.01em; }
   .pill{
     font-size:11px; font-weight:600; letter-spacing:0.02em;
-    padding:5px 10px; border-radius:999px;
-    border:1px solid var(--line);
-    color:rgba(243,237,226,0.7);
-    white-space:nowrap;
+    padding:5px 10px; border-radius:999px; border:1px solid var(--line);
+    color:rgba(243,237,226,0.7); white-space:nowrap;
   }
   .pill.strict{ color:var(--navy-deep); background:var(--amber-bright); border-color:transparent; }
   .pill.standard{ color:var(--sage); border-color:rgba(221,230,223,0.35); }
   .pill.flexible{ color:var(--amber-bright); border-color:rgba(224,164,88,0.4); }
 
-  /* ---- screen 1: today ---- */
+  /* ---- today ---- */
   .greeting{ font-size:13px; color:rgba(243,237,226,0.55); margin-bottom:4px; }
   .headline{ font-size:22px; font-weight:700; letter-spacing:-0.015em; margin-bottom:26px; }
-
-  .ring-wrap{
-    display:flex; align-items:center; justify-content:center;
-    margin:6px 0 26px;
-  }
+  .ring-wrap{ display:flex; align-items:center; justify-content:center; margin:6px 0 26px; }
   .ring{
     width:168px; height:168px; border-radius:50%;
     background: conic-gradient(var(--amber-bright) 0deg 252deg, rgba(243,237,226,0.08) 252deg 360deg);
-    display:flex; align-items:center; justify-content:center;
-    position:relative;
+    display:flex; align-items:center; justify-content:center; position:relative;
     transition:background .4s ease;
   }
-  .ring::before{
-    content:"";
-    position:absolute; inset:12px;
-    border-radius:50%;
-    background:var(--navy);
-  }
+  .ring::before{ content:""; position:absolute; inset:12px; border-radius:50%; background:var(--navy); }
   .ring-inner{ position:relative; text-align:center; }
   .ring-inner .num{ font-size:30px; font-weight:800; letter-spacing:-0.02em; }
   .ring-inner .cap{ font-size:11px; color:rgba(243,237,226,0.5); margin-top:2px; }
 
   .section-title{
     font-size:12px; letter-spacing:0.08em; color:rgba(243,237,226,0.4);
-    margin-bottom:10px;
-    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;
   }
-  .section-title .link{
-    font-size:11px; letter-spacing:0; color:var(--amber-bright); cursor:pointer; font-weight:600;
-  }
-  .app-row{
-    display:flex; align-items:center; gap:12px;
-    padding:11px 0;
-    border-bottom:1px solid var(--line);
-    cursor:pointer;
-  }
+  .section-title .link{ font-size:11px; letter-spacing:0; color:var(--amber-bright); cursor:pointer; font-weight:600; }
+  .app-row{ display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--line); cursor:pointer; }
   .app-row:last-child{ border-bottom:none; }
   .app-row:active{ opacity:0.7; }
   .app-icon{
-    width:34px; height:34px; border-radius:10px;
-    display:flex; align-items:center; justify-content:center;
-    font-size:14px; font-weight:700;
-    color:var(--navy-deep);
-    flex-shrink:0;
+    width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:700; color:var(--navy-deep); flex-shrink:0;
   }
   .app-meta{ flex:1; min-width:0; }
   .app-name{ font-size:14px; font-weight:600; }
@@ -205,144 +139,87 @@
   .chevron{ color:rgba(243,237,226,0.3); font-size:14px; flex-shrink:0; }
   .empty-note{ font-size:12.5px; color:rgba(243,237,226,0.45); text-align:center; padding:18px 0; }
 
-  /* ---- screen 2: locked ---- */
-  .lock-screen{ align-items:center; text-align:center; justify-content:flex-start; padding-top:66px; }
+  /* ---- locked ---- */
+  .lock-screen{ align-items:center; text-align:center; justify-content:flex-start; padding-top: calc(env(safe-area-inset-top,0px) + 34px) !important; }
   .lock-icon{
     width:80px; height:80px; border-radius:50%;
-    background:rgba(224,164,88,0.12);
-    border:1px solid rgba(224,164,88,0.35);
-    display:flex; align-items:center; justify-content:center;
-    margin-bottom:26px;
+    background:rgba(224,164,88,0.12); border:1px solid rgba(224,164,88,0.35);
+    display:flex; align-items:center; justify-content:center; margin-bottom:26px;
     transition:background .3s ease, border-color .3s ease;
   }
   .lock-title{ font-size:19px; font-weight:700; margin-bottom:10px; letter-spacing:-0.01em; }
-  .lock-body{ font-size:13.5px; line-height:1.55; color:rgba(243,237,226,0.62); max-width:250px; margin-bottom:28px; }
+  .lock-body{ font-size:13.5px; line-height:1.55; color:rgba(243,237,226,0.62); max-width:280px; margin-bottom:28px; }
   .lock-stat{
-    width:100%;
-    background:rgba(255,255,255,0.04);
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:14px 16px;
-    display:flex; justify-content:space-between; align-items:center;
-    margin-bottom:14px;
+    width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px;
+    padding:14px 16px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;
+    max-width:340px;
   }
   .lock-stat .k{ font-size:12px; color:rgba(243,237,226,0.5); }
   .lock-stat .v{ font-size:13px; font-weight:700; color:var(--amber-bright); transition:color .2s ease; }
   .fake-btn{
-    width:100%;
-    padding:14px;
-    border-radius:14px;
-    text-align:center;
-    font-size:13.5px;
-    font-weight:600;
-    margin-top:8px;
-    border:none;
-    cursor:pointer;
-    font-family:inherit;
+    width:100%; max-width:340px; padding:14px; border-radius:14px; text-align:center;
+    font-size:13.5px; font-weight:600; margin-top:8px; border:none; cursor:pointer; font-family:inherit;
   }
-  .fake-btn.disabled{
-    background:rgba(255,255,255,0.03);
-    color:rgba(243,237,226,0.28);
-    border:1px solid var(--line);
-    cursor:not-allowed;
-  }
-  .fake-btn.live{
-    background:rgba(224,164,88,0.14);
-    color:var(--amber-bright);
-    border:1px solid rgba(224,164,88,0.4);
-  }
+  .fake-btn.disabled{ background:rgba(255,255,255,0.03); color:rgba(243,237,226,0.28); border:1px solid var(--line); cursor:not-allowed; }
+  .fake-btn.live{ background:rgba(224,164,88,0.14); color:var(--amber-bright); border:1px solid rgba(224,164,88,0.4); }
   .fake-btn.live:active{ transform:scale(0.98); }
   .shake{ animation:shake .4s ease; }
   @keyframes shake{
-    0%,100%{ transform:translateX(0); }
-    20%{ transform:translateX(-6px); }
-    40%{ transform:translateX(5px); }
-    60%{ transform:translateX(-4px); }
-    80%{ transform:translateX(3px); }
+    0%,100%{ transform:translateX(0); } 20%{ transform:translateX(-6px); }
+    40%{ transform:translateX(5px); } 60%{ transform:translateX(-4px); } 80%{ transform:translateX(3px); }
   }
 
-  /* ---- screen 3: earned freedom ---- */
-  .earn-screen{ align-items:center; text-align:center; padding-top:58px; }
+  /* ---- earned freedom ---- */
+  .earn-screen{ align-items:center; text-align:center; padding-top: calc(env(safe-area-inset-top,0px) + 26px) !important; }
   .earn-icon{
-    width:80px; height:80px; border-radius:50%;
-    background:rgba(221,230,223,0.1);
-    border:1px solid rgba(221,230,223,0.3);
-    display:flex; align-items:center; justify-content:center;
-    margin-bottom:24px;
+    width:80px; height:80px; border-radius:50%; background:rgba(221,230,223,0.1);
+    border:1px solid rgba(221,230,223,0.3); display:flex; align-items:center; justify-content:center; margin-bottom:24px;
   }
   .earn-title{ font-size:19px; font-weight:700; margin-bottom:8px; letter-spacing:-0.01em; }
-  .earn-body{ font-size:13.5px; line-height:1.55; color:rgba(243,237,226,0.62); max-width:250px; margin-bottom:26px; }
-  .level-track{
-    width:100%;
-    display:flex; flex-direction:column; gap:10px;
-    margin-bottom:24px;
-  }
+  .earn-body{ font-size:13.5px; line-height:1.55; color:rgba(243,237,226,0.62); max-width:280px; margin-bottom:26px; }
+  .level-track{ width:100%; max-width:340px; display:flex; flex-direction:column; gap:10px; margin-bottom:24px; }
   .level-row{ display:flex; align-items:center; gap:10px; }
   .level-name{ width:76px; font-size:12px; font-weight:600; text-align:left; color:rgba(243,237,226,0.55); }
   .level-bar-bg{ flex:1; height:8px; border-radius:99px; background:rgba(255,255,255,0.06); overflow:hidden; }
   .level-bar-fill{ height:100%; border-radius:99px; }
-  .streak-card{
-    width:100%;
-    background:rgba(255,255,255,0.04);
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:16px;
-    text-align:left;
-  }
+  .streak-card{ width:100%; max-width:340px; background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:16px; text-align:left; }
   .streak-card .k{ font-size:11px; color:rgba(243,237,226,0.45); margin-bottom:4px; }
   .streak-card .v{ font-size:20px; font-weight:800; }
   .streak-card .sub{ font-size:12px; color:var(--sage); margin-top:4px; }
 
-  /* ---- screen 4: time saved ---- */
+  /* ---- time saved ---- */
   .saved-hero{ text-align:center; margin-bottom:22px; }
   .saved-hero .cap{ font-size:12px; color:rgba(243,237,226,0.5); margin-bottom:6px; }
   .saved-hero .num{ font-size:38px; font-weight:800; letter-spacing:-0.02em; }
   .saved-hero .num .unit{ font-size:18px; font-weight:700; color:rgba(243,237,226,0.6); margin-left:4px; }
   .saved-hero .sub{ font-size:12px; color:var(--sage); margin-top:6px; }
-
-  .week-chart{
-    display:flex; align-items:flex-end; justify-content:space-between;
-    gap:8px; height:110px; margin-bottom:8px; padding:0 2px;
-  }
-  .week-bar-col{
-    flex:1; display:flex; flex-direction:column; align-items:center;
-    justify-content:flex-end; height:100%; gap:6px;
-  }
-  .week-bar{ width:100%; max-width:22px; border-radius:6px 6px 3px 3px; background:var(--amber-bright); }
+  .week-chart{ display:flex; align-items:flex-end; justify-content:space-between; gap:8px; height:110px; margin-bottom:8px; padding:0 2px; }
+  .week-bar-col{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:6px; }
+  .week-bar{ width:100%; max-width:26px; border-radius:6px 6px 3px 3px; background:var(--amber-bright); }
   .week-bar.today{ background:var(--sage); }
   .week-bar-label{ font-size:10px; color:rgba(243,237,226,0.45); }
   .week-caption{ font-size:11.5px; color:rgba(243,237,226,0.5); text-align:center; margin-bottom:24px; }
-
   .equiv-card{
-    width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--line);
-    border-radius:14px; padding:15px 16px; display:flex; align-items:center; gap:12px; margin-bottom:10px;
+    width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px;
+    padding:15px 16px; display:flex; align-items:center; gap:12px; margin-bottom:10px;
   }
-  .equiv-icon{
-    width:36px; height:36px; border-radius:10px; flex-shrink:0;
-    background:rgba(224,164,88,0.14); display:flex; align-items:center; justify-content:center; font-size:16px;
-  }
+  .equiv-icon{ width:36px; height:36px; border-radius:10px; flex-shrink:0; background:rgba(224,164,88,0.14); display:flex; align-items:center; justify-content:center; font-size:16px; }
   .equiv-text{ font-size:12.5px; line-height:1.4; color:rgba(243,237,226,0.75); }
   .equiv-text b{ color:var(--cream); }
 
-  /* ---- screen 5: setup ---- */
+  /* ---- setup ---- */
   .setup-intro{ font-size:12.5px; line-height:1.5; color:rgba(243,237,226,0.6); margin-bottom:18px; }
   .setup-app-card{
-    background:rgba(255,255,255,0.04);
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:13px 14px;
-    margin-bottom:10px;
-    transition:border-color .2s ease, background .2s ease;
+    background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px;
+    padding:13px 14px; margin-bottom:10px; transition:border-color .2s ease, background .2s ease;
   }
   .setup-app-card.selected{ border-color:rgba(224,164,88,0.4); background:rgba(224,164,88,0.05); }
-  .setup-app-top{ display:flex; align-items:center; gap:8px; cursor:pointer; }
+  .setup-app-top{ display:flex; align-items:center; gap:8px; }
   .setup-app-name{ flex:1; font-size:14px; font-weight:600; }
   .gear-btn{
-    width:30px; height:30px; border-radius:9px; flex-shrink:0;
-    background:rgba(255,255,255,0.05); border:1px solid var(--line);
-    color:rgba(243,237,226,0.65); font-size:14px;
-    display:flex; align-items:center; justify-content:center;
-    cursor:pointer;
+    width:32px; height:32px; border-radius:9px; flex-shrink:0;
+    background:rgba(255,255,255,0.05); border:1px solid var(--line); color:rgba(243,237,226,0.65); font-size:14px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
   }
   .gear-btn:active{ transform:scale(0.94); }
   .toggle{ width:38px; height:22px; border-radius:999px; background:rgba(255,255,255,0.12); position:relative; flex-shrink:0; transition:background .2s ease; }
@@ -355,334 +232,236 @@
   .setup-slider-value{ font-size:11px; color:rgba(243,237,226,0.65); min-width:70px; text-align:right; font-weight:700; font-variant-numeric:tabular-nums; }
   .setup-rules-note{ font-size:10.5px; color:var(--amber-bright); margin-top:8px; }
 
-  input[type=range]{
-    -webkit-appearance:none; appearance:none;
-    width:100%; height:4px; border-radius:2px;
-    background:rgba(255,255,255,0.14);
-    outline:none;
-  }
-  input[type=range]::-webkit-slider-thumb{
-    -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
-    background:var(--amber-bright); border:2px solid var(--navy-deep); cursor:pointer; margin-top:-6px;
-  }
-  input[type=range]::-moz-range-thumb{
-    width:16px; height:16px; border-radius:50%; background:var(--amber-bright);
-    border:2px solid var(--navy-deep); cursor:pointer;
-  }
+  input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:4px; border-radius:2px; background:rgba(255,255,255,0.14); outline:none; }
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--amber-bright); border:2px solid var(--navy-deep); cursor:pointer; margin-top:-7px; }
+  input[type=range]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; background:var(--amber-bright); border:2px solid var(--navy-deep); cursor:pointer; }
   input[type=range]::-moz-range-track{ height:4px; border-radius:2px; background:rgba(255,255,255,0.14); }
 
   .setup-save-btn{
-    width:100%; padding:14px; border-radius:14px; text-align:center;
-    font-size:14px; font-weight:700; margin-top:8px;
-    background:var(--amber-bright); color:var(--navy-deep);
-    border:none; cursor:pointer; font-family:inherit;
+    width:100%; padding:15px; border-radius:14px; text-align:center; font-size:14px; font-weight:700;
+    margin-top:8px; background:var(--amber-bright); color:var(--navy-deep); border:none; cursor:pointer; font-family:inherit;
   }
   .setup-save-btn:active{ transform:scale(0.98); }
 
   .toast{
-    position:absolute; bottom:46px; left:50%; transform:translateX(-50%) translateY(8px);
+    position:absolute; bottom:calc(env(safe-area-inset-bottom,0px) + 78px); left:50%;
+    transform:translateX(-50%) translateY(8px);
     background:var(--sage); color:var(--navy-deep); font-size:12px; font-weight:700;
     padding:9px 18px; border-radius:999px; opacity:0; pointer-events:none;
-    transition:opacity .25s ease, transform .25s ease; z-index:30; white-space:nowrap;
+    transition:opacity .25s ease, transform .25s ease; z-index:35; white-space:nowrap;
   }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 
-  .watermark{
-    position:absolute; bottom:10px; left:0; right:0;
-    text-align:center;
-    font-size:10px;
-    letter-spacing:0.08em;
-    color:rgba(243,237,226,0.28);
-    z-index:15;
-    pointer-events:none;
-  }
-
   /* ---- interval modal ---- */
-  .modal-overlay{
-    position:absolute; inset:0;
-    background:rgba(10,13,20,0.72);
-    display:none;
-    align-items:flex-end;
-    z-index:40;
-  }
+  .modal-overlay{ position:absolute; inset:0; background:rgba(10,13,20,0.72); display:none; align-items:flex-end; z-index:40; }
   .modal-overlay.show{ display:flex; }
   .modal-sheet{
-    width:100%;
-    max-height:82%;
-    background:var(--navy);
-    border:1px solid var(--line);
-    border-top-left-radius:22px;
-    border-top-right-radius:22px;
-    padding:18px 20px 22px;
-    overflow-y:auto;
-    animation:sheet-up .25s ease;
+    width:100%; max-height:82%; background:var(--navy); border:1px solid var(--line);
+    border-top-left-radius:22px; border-top-right-radius:22px;
+    padding:18px 20px calc(env(safe-area-inset-bottom,0px) + 22px);
+    overflow-y:auto; animation:sheet-up .25s ease;
   }
   @keyframes sheet-up{ from{ transform:translateY(16px); opacity:0.6; } to{ transform:translateY(0); opacity:1; } }
   .modal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
   .modal-title{ font-size:16px; font-weight:700; }
-  .modal-close{ background:none; border:none; color:rgba(243,237,226,0.5); font-size:20px; cursor:pointer; line-height:1; padding:4px; }
+  .modal-close{ background:none; border:none; color:rgba(243,237,226,0.5); font-size:22px; cursor:pointer; line-height:1; padding:4px; }
   .modal-sub{ font-size:12px; color:rgba(243,237,226,0.5); margin-bottom:16px; }
 
-  .rule-row{
-    display:flex; align-items:center; gap:10px;
-    background:rgba(255,255,255,0.04);
-    border:1px solid var(--line);
-    border-radius:12px;
-    padding:10px 12px;
-    margin-bottom:8px;
-  }
+  .rule-row{ display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-bottom:8px; }
   .rule-icon{ font-size:14px; flex-shrink:0; }
   .rule-text{ flex:1; font-size:12.5px; line-height:1.4; }
   .rule-text b{ color:var(--cream); }
-  .rule-remove{ background:none; border:none; color:rgba(243,237,226,0.4); font-size:16px; cursor:pointer; flex-shrink:0; padding:2px 4px; }
-  .rule-remove:hover{ color:var(--amber-bright); }
+  .rule-remove{ background:none; border:none; color:rgba(243,237,226,0.4); font-size:18px; cursor:pointer; flex-shrink:0; padding:2px 4px; }
   .no-rules-note{ font-size:12px; color:rgba(243,237,226,0.4); text-align:center; padding:10px 0 16px; }
 
-  .add-rule-box{
-    border:1px dashed var(--line);
-    border-radius:14px;
-    padding:14px;
-    margin-top:6px;
-  }
+  .add-rule-box{ border:1px dashed var(--line); border-radius:14px; padding:14px; margin-top:6px; }
   .field-label{ font-size:10.5px; letter-spacing:0.06em; color:rgba(243,237,226,0.45); margin-bottom:6px; display:block; }
   .field-row{ margin-bottom:12px; }
   .type-toggle{ display:flex; gap:8px; }
-  .type-btn{
-    flex:1; padding:9px; border-radius:9px; text-align:center;
-    font-size:12px; font-weight:600; cursor:pointer;
-    background:rgba(255,255,255,0.04); border:1px solid var(--line); color:rgba(243,237,226,0.6);
-  }
+  .type-btn{ flex:1; padding:10px; border-radius:9px; text-align:center; font-size:12.5px; font-weight:600; cursor:pointer; background:rgba(255,255,255,0.04); border:1px solid var(--line); color:rgba(243,237,226,0.6); }
   .type-btn.active{ background:rgba(224,164,88,0.16); border-color:rgba(224,164,88,0.5); color:var(--amber-bright); }
   .time-row{ display:flex; align-items:center; gap:8px; }
-  .time-row input[type=time]{
-    flex:1; font-family:inherit; font-size:13px; padding:9px 10px;
-    background:rgba(255,255,255,0.05); border:1px solid var(--line); border-radius:9px; color:var(--cream);
-    color-scheme:dark;
-  }
+  .time-row input[type=time]{ flex:1; font-family:inherit; font-size:14px; padding:10px; background:rgba(255,255,255,0.05); border:1px solid var(--line); border-radius:9px; color:var(--cream); color-scheme:dark; }
   .time-sep{ font-size:11px; color:rgba(243,237,226,0.4); }
   .minutes-row{ display:flex; align-items:center; gap:8px; }
-  .minutes-row input[type=number]{
-    width:70px; font-family:inherit; font-size:13px; padding:9px 10px;
-    background:rgba(255,255,255,0.05); border:1px solid var(--line); border-radius:9px; color:var(--cream);
-  }
+  .minutes-row input[type=number]{ width:74px; font-family:inherit; font-size:14px; padding:10px; background:rgba(255,255,255,0.05); border:1px solid var(--line); border-radius:9px; color:var(--cream); }
   .minutes-row span{ font-size:12px; color:rgba(243,237,226,0.55); }
-  .add-rule-btn{
-    width:100%; margin-top:12px; padding:11px; border-radius:10px;
-    background:var(--amber-bright); color:var(--navy-deep); font-weight:700; font-size:13px;
-    border:none; cursor:pointer; font-family:inherit;
-  }
+  .add-rule-btn{ width:100%; margin-top:12px; padding:12px; border-radius:10px; background:var(--amber-bright); color:var(--navy-deep); font-weight:700; font-size:13.5px; border:none; cursor:pointer; font-family:inherit; }
   .add-rule-btn:active{ transform:scale(0.98); }
-  .modal-done-btn{
-    width:100%; margin-top:16px; padding:13px; border-radius:12px;
-    background:rgba(255,255,255,0.06); color:var(--cream); font-weight:700; font-size:13.5px;
-    border:1px solid var(--line); cursor:pointer; font-family:inherit;
-  }
-
-  @media (max-width:380px){
-    .phone{ width:300px; height:620px; }
-  }
+  .modal-done-btn{ width:100%; margin-top:16px; padding:13px; border-radius:12px; background:rgba(255,255,255,0.06); color:var(--cream); font-weight:700; font-size:13.5px; border:1px solid var(--line); cursor:pointer; font-family:inherit; }
 </style>
 </head>
 <body>
 
-<div class="stage">
-  <div class="stage-label"><span class="dot"></span>WARDEN — CONCEPT PREVIEW</div>
+<div class="app-root">
+  <div class="preview-tag">CONCEPT PREVIEW</div>
 
-  <div class="tabs" role="tablist" aria-label="Preview screens">
-    <button class="active" data-screen="setup">Setup</button>
-    <button data-screen="home">Today</button>
-    <button data-screen="locked">Locked</button>
-    <button data-screen="earned">Earned freedom</button>
-    <button data-screen="saved">Time saved</button>
+  <!-- SETUP -->
+  <div class="screen active" id="screen-setup">
+    <div class="top-row">
+      <div class="brand-mark">
+        <svg class="eye-badge" viewBox="0 0 160 160" aria-hidden="true"><path d="M28 80 A60 60 0 0 1 132 80 A60 60 0 0 1 28 80 Z" fill="#F3EDE2"/><circle cx="80" cy="80" r="14" fill="#1F2A44"/><circle cx="80" cy="80" r="5" fill="#E0A458"/></svg>
+        Warden
+      </div>
+    </div>
+    <div class="headline" style="margin-bottom:6px;">Choose what to guard</div>
+    <div class="setup-intro">Turn on the apps you want Warden to watch, drag each slider for a daily limit, and tap ⚙ to set time-of-day rules for that app.</div>
+    <div id="setup-app-list"></div>
+    <button class="setup-save-btn" onclick="saveSetup()">Save &amp; update Today</button>
   </div>
 
-  <div class="phone">
-    <div class="notch"></div>
-
-    <!-- SCREEN: SETUP (interactive) -->
-    <div class="screen active" id="screen-setup">
-      <div class="top-row">
-        <div class="brand-mark">
-          <svg class="eye-badge" viewBox="0 0 160 160" aria-hidden="true"><path d="M28 80 A60 60 0 0 1 132 80 A60 60 0 0 1 28 80 Z" fill="#F3EDE2"/><circle cx="80" cy="80" r="14" fill="#1F2A44"/><circle cx="80" cy="80" r="5" fill="#E0A458"/></svg>
-          Warden
-        </div>
+  <!-- TODAY -->
+  <div class="screen" id="screen-home">
+    <div class="top-row">
+      <div class="brand-mark">
+        <svg class="eye-badge" viewBox="0 0 160 160" aria-hidden="true"><path d="M28 80 A60 60 0 0 1 132 80 A60 60 0 0 1 28 80 Z" fill="#F3EDE2"/><circle cx="80" cy="80" r="14" fill="#1F2A44"/><circle cx="80" cy="80" r="5" fill="#E0A458"/></svg>
+        Warden
       </div>
-      <div class="headline" style="margin-bottom:6px;">Choose what to guard</div>
-      <div class="setup-intro">Turn on the apps you want Warden to watch, drag each slider for a daily limit, and tap ⚙ to set time-of-day rules for that app.</div>
-
-      <div id="setup-app-list"></div>
-
-      <button class="setup-save-btn" onclick="saveSetup()">Save & update Today</button>
+      <span class="pill standard">Standard</span>
     </div>
-
-    <!-- SCREEN: HOME / TODAY -->
-    <div class="screen" id="screen-home">
-      <div class="top-row">
-        <div class="brand-mark">
-          <svg class="eye-badge" viewBox="0 0 160 160" aria-hidden="true"><path d="M28 80 A60 60 0 0 1 132 80 A60 60 0 0 1 28 80 Z" fill="#F3EDE2"/><circle cx="80" cy="80" r="14" fill="#1F2A44"/><circle cx="80" cy="80" r="5" fill="#E0A458"/></svg>
-          Warden
+    <div class="greeting">Tuesday, September 29</div>
+    <div class="headline" id="today-headline">You're within your limits today</div>
+    <div class="ring-wrap">
+      <div class="ring" id="today-ring">
+        <div class="ring-inner">
+          <div class="num" id="ring-num">1h 42m</div>
+          <div class="cap" id="ring-cap">of 2h 15m used</div>
         </div>
-        <span class="pill standard">Standard</span>
       </div>
+    </div>
+    <div class="section-title">
+      <span>MONITORED APPS</span>
+      <span class="link" onclick="goToTab('setup')">Edit</span>
+    </div>
+    <div id="today-app-list"></div>
+  </div>
 
-      <div class="greeting">Tuesday, September 29</div>
-      <div class="headline" id="today-headline">You're within your limits today</div>
+  <!-- LOCKED -->
+  <div class="screen lock-screen" id="screen-locked">
+    <span class="pill strict" style="margin-bottom:20px;">Strict mode</span>
+    <div class="lock-icon" id="lock-icon">
+      <svg width="34" height="34" viewBox="0 0 160 160" aria-hidden="true"><path d="M28 80 A60 60 0 0 1 132 80 A60 60 0 0 1 28 80 Z" fill="none" stroke="#E0A458" stroke-width="8"/><circle cx="80" cy="80" r="10" fill="#E0A458"/></svg>
+    </div>
+    <div class="lock-title" id="lock-title">X is locked for now</div>
+    <div class="lock-body" id="lock-body">You've tried to reopen this app 5 times in the last hour. Warden tightens the lock when it notices a pattern like this.</div>
+    <div class="lock-stat">
+      <span class="k">Reopen attempts today</span>
+      <span class="v" id="attempt-count">5</span>
+    </div>
+    <div class="lock-stat">
+      <span class="k">Lock lifts in</span>
+      <span class="v" id="lock-timer">2h 10m</span>
+    </div>
+    <button class="fake-btn live" id="reopen-btn" onclick="tryReopen()">Try to reopen X</button>
+  </div>
 
-      <div class="ring-wrap">
-        <div class="ring" id="today-ring">
-          <div class="ring-inner">
-            <div class="num" id="ring-num">1h 42m</div>
-            <div class="cap" id="ring-cap">of 2h 15m used</div>
+  <!-- EARNED FREEDOM -->
+  <div class="screen earn-screen" id="screen-earned">
+    <span class="pill flexible" style="margin-bottom:20px;">Flexible mode</span>
+    <div class="earn-icon">
+      <svg width="34" height="34" viewBox="0 0 160 160" aria-hidden="true"><path d="M296 100 C308 158 324 158 340 116 C356 158 372 158 382 100" transform="translate(-260,-60) scale(0.9)" fill="none" stroke="#DDE6DF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><circle cx="34" cy="6" r="6" fill="#E0A458" transform="translate(46,30)"/></svg>
+    </div>
+    <div class="earn-title">You've earned more freedom</div>
+    <div class="earn-body">9 days without a single bypass attempt. Warden is loosening your limits — you can override once per day if you really need to.</div>
+    <div class="level-track">
+      <div class="level-row"><span class="level-name">Strict</span><div class="level-bar-bg"><div class="level-bar-fill" style="width:100%; background:rgba(243,237,226,0.15);"></div></div></div>
+      <div class="level-row"><span class="level-name">Standard</span><div class="level-bar-bg"><div class="level-bar-fill" style="width:100%; background:rgba(243,237,226,0.25);"></div></div></div>
+      <div class="level-row"><span class="level-name">Flexible</span><div class="level-bar-bg"><div class="level-bar-fill" style="width:78%; background:#E0A458;"></div></div></div>
+    </div>
+    <div class="streak-card">
+      <div class="k">CURRENT STREAK</div>
+      <div class="v">9 days clean</div>
+      <div class="sub">↑ Trust level rising</div>
+    </div>
+  </div>
+
+  <!-- TIME SAVED -->
+  <div class="screen" id="screen-saved">
+    <div class="top-row">
+      <div class="brand-mark">
+        <svg class="eye-badge" viewBox="0 0 160 160" aria-hidden="true"><path d="M28 80 A60 60 0 0 1 132 80 A60 60 0 0 1 28 80 Z" fill="#F3EDE2"/><circle cx="80" cy="80" r="14" fill="#1F2A44"/><circle cx="80" cy="80" r="5" fill="#E0A458"/></svg>
+        Warden
+      </div>
+      <span class="pill flexible">9-day streak</span>
+    </div>
+    <div class="saved-hero">
+      <div class="cap">TIME SAVED THIS WEEK</div>
+      <div class="num">6<span class="unit">h</span> 40<span class="unit">m</span></div>
+      <div class="sub">↑ 38% less than your old average</div>
+    </div>
+    <div class="section-title"><span>LAST 7 DAYS</span></div>
+    <div class="week-chart">
+      <div class="week-bar-col"><div class="week-bar" style="height:38%;"></div><div class="week-bar-label">Wed</div></div>
+      <div class="week-bar-col"><div class="week-bar" style="height:52%;"></div><div class="week-bar-label">Thu</div></div>
+      <div class="week-bar-col"><div class="week-bar" style="height:30%;"></div><div class="week-bar-label">Fri</div></div>
+      <div class="week-bar-col"><div class="week-bar" style="height:66%;"></div><div class="week-bar-label">Sat</div></div>
+      <div class="week-bar-col"><div class="week-bar" style="height:74%;"></div><div class="week-bar-label">Sun</div></div>
+      <div class="week-bar-col"><div class="week-bar" style="height:58%;"></div><div class="week-bar-label">Mon</div></div>
+      <div class="week-bar-col"><div class="week-bar today" style="height:82%;"></div><div class="week-bar-label">Tue</div></div>
+    </div>
+    <div class="week-caption">Minutes saved per day, vs. your pre-Warden average</div>
+    <div class="section-title"><span>SINCE YOU STARTED</span></div>
+    <div class="equiv-card">
+      <div class="equiv-icon">⏱️</div>
+      <div class="equiv-text"><b>21h 15m</b> saved in 9 days — about <b>2h 22m</b> a day back in your pocket.</div>
+    </div>
+    <div class="equiv-card">
+      <div class="equiv-icon">📖</div>
+      <div class="equiv-text">Enough time to finish <b>4 books</b> or a full season of a show, guilt-free.</div>
+    </div>
+  </div>
+
+  <!-- INTERVAL RULES MODAL -->
+  <div class="modal-overlay" id="interval-overlay">
+    <div class="modal-sheet">
+      <div class="modal-head">
+        <div class="modal-title" id="modal-app-title">Instagram — time rules</div>
+        <button class="modal-close" onclick="closeIntervalModal()">×</button>
+      </div>
+      <div class="modal-sub">Add specific windows during the day with their own rule.</div>
+      <div id="rule-list"></div>
+      <div class="add-rule-box">
+        <div class="field-row">
+          <span class="field-label">RULE TYPE</span>
+          <div class="type-toggle">
+            <div class="type-btn active" id="type-btn-block" onclick="setRuleType('block')">Block completely</div>
+            <div class="type-btn" id="type-btn-limit" onclick="setRuleType('limit')">Limit time</div>
           </div>
         </div>
-      </div>
-
-      <div class="section-title">
-        <span>MONITORED APPS</span>
-        <span class="link" onclick="goToTab('setup')">Edit</span>
-      </div>
-      <div id="today-app-list"></div>
-    </div>
-
-    <!-- SCREEN: LOCKED (STRICT, interactive) -->
-    <div class="screen lock-screen" id="screen-locked">
-      <span class="pill strict" style="margin-bottom:20px;">Strict mode</span>
-      <div class="lock-icon" id="lock-icon">
-        <svg width="34" height="34" viewBox="0 0 160 160" aria-hidden="true"><path d="M28 80 A60 60 0 0 1 132 80 A60 60 0 0 1 28 80 Z" fill="none" stroke="#E0A458" stroke-width="8"/><circle cx="80" cy="80" r="10" fill="#E0A458"/></svg>
-      </div>
-      <div class="lock-title" id="lock-title">X is locked for now</div>
-      <div class="lock-body" id="lock-body">You've tried to reopen this app 5 times in the last hour. Warden tightens the lock when it notices a pattern like this.</div>
-
-      <div class="lock-stat">
-        <span class="k">Reopen attempts today</span>
-        <span class="v" id="attempt-count">5</span>
-      </div>
-      <div class="lock-stat">
-        <span class="k">Lock lifts in</span>
-        <span class="v" id="lock-timer">2h 10m</span>
-      </div>
-
-      <button class="fake-btn live" id="reopen-btn" onclick="tryReopen()">Try to reopen X</button>
-    </div>
-
-    <!-- SCREEN: EARNED FREEDOM -->
-    <div class="screen earn-screen" id="screen-earned">
-      <span class="pill flexible" style="margin-bottom:20px;">Flexible mode</span>
-      <div class="earn-icon">
-        <svg width="34" height="34" viewBox="0 0 160 160" aria-hidden="true"><path d="M296 100 C308 158 324 158 340 116 C356 158 372 158 382 100" transform="translate(-260,-60) scale(0.9)" fill="none" stroke="#DDE6DF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><circle cx="34" cy="6" r="6" fill="#E0A458" transform="translate(46,30)"/></svg>
-      </div>
-      <div class="earn-title">You've earned more freedom</div>
-      <div class="earn-body">9 days without a single bypass attempt. Warden is loosening your limits — you can override once per day if you really need to.</div>
-
-      <div class="level-track">
-        <div class="level-row">
-          <span class="level-name">Strict</span>
-          <div class="level-bar-bg"><div class="level-bar-fill" style="width:100%; background:rgba(243,237,226,0.15);"></div></div>
-        </div>
-        <div class="level-row">
-          <span class="level-name">Standard</span>
-          <div class="level-bar-bg"><div class="level-bar-fill" style="width:100%; background:rgba(243,237,226,0.25);"></div></div>
-        </div>
-        <div class="level-row">
-          <span class="level-name">Flexible</span>
-          <div class="level-bar-bg"><div class="level-bar-fill" style="width:78%; background:#E0A458;"></div></div>
-        </div>
-      </div>
-
-      <div class="streak-card">
-        <div class="k">CURRENT STREAK</div>
-        <div class="v">9 days clean</div>
-        <div class="sub">↑ Trust level rising</div>
-      </div>
-    </div>
-
-    <!-- SCREEN: TIME SAVED -->
-    <div class="screen" id="screen-saved">
-      <div class="top-row">
-        <div class="brand-mark">
-          <svg class="eye-badge" viewBox="0 0 160 160" aria-hidden="true"><path d="M28 80 A60 60 0 0 1 132 80 A60 60 0 0 1 28 80 Z" fill="#F3EDE2"/><circle cx="80" cy="80" r="14" fill="#1F2A44"/><circle cx="80" cy="80" r="5" fill="#E0A458"/></svg>
-          Warden
-        </div>
-        <span class="pill flexible">9-day streak</span>
-      </div>
-
-      <div class="saved-hero">
-        <div class="cap">TIME SAVED THIS WEEK</div>
-        <div class="num">6<span class="unit">h</span> 40<span class="unit">m</span></div>
-        <div class="sub">↑ 38% less than your old average</div>
-      </div>
-
-      <div class="section-title"><span>LAST 7 DAYS</span></div>
-      <div class="week-chart">
-        <div class="week-bar-col"><div class="week-bar" style="height:38%;"></div><div class="week-bar-label">Wed</div></div>
-        <div class="week-bar-col"><div class="week-bar" style="height:52%;"></div><div class="week-bar-label">Thu</div></div>
-        <div class="week-bar-col"><div class="week-bar" style="height:30%;"></div><div class="week-bar-label">Fri</div></div>
-        <div class="week-bar-col"><div class="week-bar" style="height:66%;"></div><div class="week-bar-label">Sat</div></div>
-        <div class="week-bar-col"><div class="week-bar" style="height:74%;"></div><div class="week-bar-label">Sun</div></div>
-        <div class="week-bar-col"><div class="week-bar" style="height:58%;"></div><div class="week-bar-label">Mon</div></div>
-        <div class="week-bar-col"><div class="week-bar today" style="height:82%;"></div><div class="week-bar-label">Tue</div></div>
-      </div>
-      <div class="week-caption">Minutes saved per day, vs. your pre-Warden average</div>
-
-      <div class="section-title"><span>SINCE YOU STARTED</span></div>
-      <div class="equiv-card">
-        <div class="equiv-icon">⏱️</div>
-        <div class="equiv-text"><b>21h 15m</b> saved in 9 days — about <b>2h 22m</b> a day back in your pocket.</div>
-      </div>
-      <div class="equiv-card">
-        <div class="equiv-icon">📖</div>
-        <div class="equiv-text">Enough time to finish <b>4 books</b> or a full season of a show, guilt-free.</div>
-      </div>
-    </div>
-
-    <!-- INTERVAL RULES MODAL (per-app) -->
-    <div class="modal-overlay" id="interval-overlay">
-      <div class="modal-sheet">
-        <div class="modal-head">
-          <div class="modal-title" id="modal-app-title">Instagram — time rules</div>
-          <button class="modal-close" onclick="closeIntervalModal()">×</button>
-        </div>
-        <div class="modal-sub">Add specific windows during the day with their own rule.</div>
-
-        <div id="rule-list"></div>
-
-        <div class="add-rule-box">
-          <div class="field-row">
-            <span class="field-label">RULE TYPE</span>
-            <div class="type-toggle">
-              <div class="type-btn active" id="type-btn-block" onclick="setRuleType('block')">Block completely</div>
-              <div class="type-btn" id="type-btn-limit" onclick="setRuleType('limit')">Limit time</div>
-            </div>
+        <div class="field-row">
+          <span class="field-label">WINDOW</span>
+          <div class="time-row">
+            <input type="time" id="rule-start" value="22:00">
+            <span class="time-sep">to</span>
+            <input type="time" id="rule-end" value="07:00">
           </div>
-          <div class="field-row">
-            <span class="field-label">WINDOW</span>
-            <div class="time-row">
-              <input type="time" id="rule-start" value="22:00">
-              <span class="time-sep">to</span>
-              <input type="time" id="rule-end" value="07:00">
-            </div>
-          </div>
-          <div class="field-row" id="minutes-field" style="display:none; margin-bottom:0;">
-            <span class="field-label">LIMIT</span>
-            <div class="minutes-row">
-              <input type="number" id="rule-minutes" value="10" min="1" max="120">
-              <span>minutes allowed in this window</span>
-            </div>
-          </div>
-          <button class="add-rule-btn" onclick="addInterval()">+ Add rule</button>
         </div>
-
-        <button class="modal-done-btn" onclick="closeIntervalModal()">Done</button>
+        <div class="field-row" id="minutes-field" style="display:none; margin-bottom:0;">
+          <span class="field-label">LIMIT</span>
+          <div class="minutes-row">
+            <input type="number" id="rule-minutes" value="10" min="1" max="120">
+            <span>minutes allowed in this window</span>
+          </div>
+        </div>
+        <button class="add-rule-btn" onclick="addInterval()">+ Add rule</button>
       </div>
+      <button class="modal-done-btn" onclick="closeIntervalModal()">Done</button>
     </div>
+  </div>
 
-    <div class="toast" id="toast"></div>
-    <div class="watermark">CONCEPT PREVIEW · NOT A LIVE APP YET</div>
+  <div class="toast" id="toast"></div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <button class="active" data-screen="setup"><span class="nav-icon">⚙</span>Setup</button>
+    <button data-screen="home"><span class="nav-icon">🏠</span>Today</button>
+    <button data-screen="locked"><span class="nav-icon">🔒</span>Locked</button>
+    <button data-screen="earned"><span class="nav-icon">🔓</span>Freedom</button>
+    <button data-screen="saved"><span class="nav-icon">⏱</span>Saved</button>
   </div>
 </div>
 
 <script>
-  /* ---------------- state ---------------- */
   const state = {
     apps: [
       { id:'ig', name:'Instagram', icon:'IG', color:'#E1306C', selected:true,  limit:60, intervals:[
@@ -704,8 +483,7 @@
     { title:'Fully locked for the rest of the day', body:"{n} attempts is Warden's limit. X stays locked until tomorrow — no overrides left today.", timer:'Tomorrow, 6:00 AM', tint:'rgba(208,140,58,0.22)', border:'rgba(208,140,58,0.6)', btn:'Locked' },
   ];
 
-  /* ---------------- tab switching ---------------- */
-  const buttons = document.querySelectorAll('.tabs button');
+  const buttons = document.querySelectorAll('.bottom-nav button');
   const screens = {
     setup:  document.getElementById('screen-setup'),
     home:   document.getElementById('screen-home'),
@@ -716,11 +494,11 @@
   function activateTab(name){
     buttons.forEach(b => b.classList.toggle('active', b.dataset.screen === name));
     Object.entries(screens).forEach(([k,el]) => el.classList.toggle('active', k === name));
+    screens[name].scrollTop = 0;
   }
   buttons.forEach(btn => btn.addEventListener('click', () => activateTab(btn.dataset.screen)));
   function goToTab(name){ activateTab(name); }
 
-  /* ---------------- setup screen ---------------- */
   function renderSetup(){
     const list = document.getElementById('setup-app-list');
     list.innerHTML = state.apps.map(a => `
@@ -732,8 +510,7 @@
           <div class="toggle ${a.selected ? 'on' : ''}" onclick="toggleApp('${a.id}')"><div class="toggle-knob"></div></div>
         </div>
         <div class="setup-slider-row ${a.selected ? '' : 'disabled'}">
-          <input type="range" min="10" max="180" step="5" value="${a.limit}"
-                 oninput="onSliderInput('${a.id}', this.value)">
+          <input type="range" min="10" max="180" step="5" value="${a.limit}" oninput="onSliderInput('${a.id}', this.value)">
           <span class="setup-slider-value" id="limit-label-${a.id}">${a.limit} min/day</span>
         </div>
         ${a.intervals.length > 0 ? `<div class="setup-rules-note">⚙ ${a.intervals.length} time rule${a.intervals.length>1?'s':''} set</div>` : ''}
@@ -746,20 +523,17 @@
     app.selected = !app.selected;
     renderSetup();
   }
-
   function onSliderInput(id, val){
     const app = state.apps.find(a => a.id === id);
     app.limit = parseInt(val, 10);
     document.getElementById('limit-label-'+id).textContent = app.limit + ' min/day';
   }
-
   function saveSetup(){
     renderToday();
     showToast('Limits saved ✓');
     activateTab('home');
   }
 
-  /* ---------------- interval rules modal ---------------- */
   function openIntervalModal(id){
     state.editingAppId = id;
     state.newRuleType = 'block';
@@ -793,13 +567,7 @@
       const desc = r.type === 'block'
         ? `<b>Blocked</b> from <b>${r.start}</b> to <b>${r.end}</b>`
         : `<b>${r.minutes} min</b> allowed from <b>${r.start}</b> to <b>${r.end}</b>`;
-      return `
-        <div class="rule-row">
-          <span class="rule-icon">${r.type === 'block' ? '🚫' : '⏳'}</span>
-          <span class="rule-text">${desc}</span>
-          <button class="rule-remove" onclick="removeInterval(${i})" aria-label="Remove rule">×</button>
-        </div>
-      `;
+      return `<div class="rule-row"><span class="rule-icon">${r.type === 'block' ? '🚫' : '⏳'}</span><span class="rule-text">${desc}</span><button class="rule-remove" onclick="removeInterval(${i})" aria-label="Remove rule">×</button></div>`;
     }).join('');
   }
   function addInterval(){
@@ -819,11 +587,9 @@
     renderRuleList();
   }
 
-  /* ---------------- today screen ---------------- */
   function renderToday(){
     const active = state.apps.filter(a => a.selected);
     const listEl = document.getElementById('today-app-list');
-
     if(active.length === 0){
       listEl.innerHTML = `<div class="empty-note">No apps selected yet. Head to Setup to pick some.</div>`;
       document.getElementById('ring-num').textContent = '0m';
@@ -832,86 +598,58 @@
       document.getElementById('today-headline').textContent = 'Nothing to guard yet';
       return;
     }
-
     let totalLimit = 0, totalUsed = 0;
     listEl.innerHTML = active.map(a => {
       const used = Math.max(2, Math.round(a.limit * 0.62));
-      totalLimit += a.limit;
-      totalUsed += used;
-      const ratio = used / a.limit;
-      const watching = ratio >= 0.8;
-      return `
-        <div class="app-row" onclick="goToTab('setup')">
-          <div class="app-icon" style="background:${a.color}33; color:${a.colorText || a.color};">${a.icon}</div>
-          <div class="app-meta">
-            <div class="app-name">${a.name}</div>
-            <div class="app-time">${used} of ${a.limit} min today${a.intervals.length ? ' · ' + a.intervals.length + ' rule' + (a.intervals.length>1?'s':'') : ''}</div>
-          </div>
-          <div class="app-status ${watching ? 'status-watch' : 'status-ok'}">${watching ? 'Watching' : 'On track'}</div>
-          <div class="chevron">›</div>
-        </div>
-      `;
+      totalLimit += a.limit; totalUsed += used;
+      const watching = (used / a.limit) >= 0.8;
+      return `<div class="app-row" onclick="goToTab('setup')">
+        <div class="app-icon" style="background:${a.color}33; color:${a.colorText || a.color};">${a.icon}</div>
+        <div class="app-meta"><div class="app-name">${a.name}</div>
+        <div class="app-time">${used} of ${a.limit} min today${a.intervals.length ? ' · ' + a.intervals.length + ' rule' + (a.intervals.length>1?'s':'') : ''}</div></div>
+        <div class="app-status ${watching ? 'status-watch' : 'status-ok'}">${watching ? 'Watching' : 'On track'}</div>
+        <div class="chevron">›</div></div>`;
     }).join('');
-
     const pct = Math.min(1, totalUsed / totalLimit);
-    document.getElementById('today-ring').style.background =
-      `conic-gradient(var(--amber-bright) 0deg ${pct*360}deg, rgba(243,237,226,0.08) ${pct*360}deg 360deg)`;
+    document.getElementById('today-ring').style.background = `conic-gradient(var(--amber-bright) 0deg ${pct*360}deg, rgba(243,237,226,0.08) ${pct*360}deg 360deg)`;
     document.getElementById('ring-num').textContent = minutesToHM(totalUsed);
     document.getElementById('ring-cap').textContent = `of ${minutesToHM(totalLimit)} used`;
-    document.getElementById('today-headline').textContent =
-      pct >= 0.9 ? "You're close to today's limit" : "You're within your limits today";
+    document.getElementById('today-headline').textContent = pct >= 0.9 ? "You're close to today's limit" : "You're within your limits today";
   }
-
   function minutesToHM(mins){
     const h = Math.floor(mins/60), m = mins % 60;
-    if(h === 0) return `${m}m`;
-    return `${h}h ${m}m`;
+    return h === 0 ? `${m}m` : `${h}h ${m}m`;
   }
 
-  /* ---------------- locked screen ---------------- */
   function tryReopen(){
     state.attempts++;
     const btn = document.getElementById('reopen-btn');
     btn.parentElement.classList.remove('shake');
     void btn.parentElement.offsetWidth;
     btn.parentElement.classList.add('shake');
-
-    if(state.strictStage < STAGES.length - 1){
-      state.strictStage++;
-    }
+    if(state.strictStage < STAGES.length - 1) state.strictStage++;
     const stage = STAGES[state.strictStage];
-
     document.getElementById('lock-title').textContent = stage.title;
     document.getElementById('lock-body').textContent = stage.body.replace('{n}', state.attempts);
     document.getElementById('lock-timer').textContent = stage.timer;
     document.getElementById('attempt-count').textContent = state.attempts;
     document.getElementById('lock-icon').style.background = stage.tint;
     document.getElementById('lock-icon').style.borderColor = stage.border;
-
     if(state.strictStage === STAGES.length - 1){
-      btn.textContent = stage.btn;
-      btn.classList.remove('live');
-      btn.classList.add('disabled');
-      btn.disabled = true;
-    } else {
-      btn.textContent = stage.btn;
-    }
+      btn.textContent = stage.btn; btn.classList.remove('live'); btn.classList.add('disabled'); btn.disabled = true;
+    } else { btn.textContent = stage.btn; }
   }
 
-  /* ---------------- toast ---------------- */
   let toastTimer = null;
   function showToast(msg){
     const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.classList.add('show');
+    el.textContent = msg; el.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
   }
 
-  /* ---------------- init ---------------- */
   renderSetup();
   renderToday();
 </script>
-
 </body>
 </html>
