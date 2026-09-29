@@ -63,6 +63,8 @@
     border:1px solid var(--line);
     padding:4px;
     border-radius:12px;
+    flex-wrap:wrap;
+    justify-content:center;
   }
   .tabs button{
     appearance:none;
@@ -70,12 +72,13 @@
     background:transparent;
     color:rgba(243,237,226,0.55);
     font-family:inherit;
-    font-size:13px;
+    font-size:12.5px;
     font-weight:600;
-    padding:8px 14px;
+    padding:8px 12px;
     border-radius:9px;
     cursor:pointer;
     transition:background .2s ease, color .2s ease;
+    white-space:nowrap;
   }
   .tabs button.active{
     background:var(--amber);
@@ -109,6 +112,7 @@
     display:none;
     flex-direction:column;
     animation:fade .35s ease;
+    overflow-y:auto;
   }
   .screen.active{display:flex;}
   @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
@@ -117,6 +121,7 @@
   .eye-badge{
     width:30px; height:30px;
     display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
   }
   .top-row{
     display:flex; align-items:center; justify-content:space-between;
@@ -131,6 +136,7 @@
     padding:5px 10px; border-radius:999px;
     border:1px solid var(--line);
     color:rgba(243,237,226,0.7);
+    white-space:nowrap;
   }
   .pill.strict{ color:var(--navy-deep); background:var(--amber-bright); border-color:transparent; }
   .pill.standard{ color:var(--sage); border-color:rgba(221,230,223,0.35); }
@@ -149,6 +155,7 @@
     background: conic-gradient(var(--amber-bright) 0deg 252deg, rgba(243,237,226,0.08) 252deg 360deg);
     display:flex; align-items:center; justify-content:center;
     position:relative;
+    transition:background .4s ease;
   }
   .ring::before{
     content:"";
@@ -163,25 +170,34 @@
   .section-title{
     font-size:12px; letter-spacing:0.08em; color:rgba(243,237,226,0.4);
     margin-bottom:10px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .section-title .link{
+    font-size:11px; letter-spacing:0; color:var(--amber-bright); cursor:pointer; font-weight:600;
   }
   .app-row{
     display:flex; align-items:center; gap:12px;
     padding:11px 0;
     border-bottom:1px solid var(--line);
+    cursor:pointer;
   }
   .app-row:last-child{ border-bottom:none; }
+  .app-row:active{ opacity:0.7; }
   .app-icon{
     width:34px; height:34px; border-radius:10px;
     display:flex; align-items:center; justify-content:center;
     font-size:14px; font-weight:700;
     color:var(--navy-deep);
+    flex-shrink:0;
   }
-  .app-meta{ flex:1; }
+  .app-meta{ flex:1; min-width:0; }
   .app-name{ font-size:14px; font-weight:600; }
   .app-time{ font-size:12px; color:rgba(243,237,226,0.5); margin-top:1px; }
-  .app-status{ font-size:11px; font-weight:600; }
+  .app-status{ font-size:11px; font-weight:600; flex-shrink:0; }
   .status-ok{ color:var(--sage); }
   .status-watch{ color:var(--amber-bright); }
+  .chevron{ color:rgba(243,237,226,0.3); font-size:14px; flex-shrink:0; }
+  .empty-note{ font-size:12.5px; color:rgba(243,237,226,0.45); text-align:center; padding:18px 0; }
 
   /* ---- screen 2: locked ---- */
   .lock-screen{ align-items:center; text-align:center; justify-content:flex-start; padding-top:64px; }
@@ -191,6 +207,7 @@
     border:1px solid rgba(224,164,88,0.35);
     display:flex; align-items:center; justify-content:center;
     margin-bottom:26px;
+    transition:background .3s ease, border-color .3s ease;
   }
   .lock-title{ font-size:19px; font-weight:700; margin-bottom:10px; letter-spacing:-0.01em; }
   .lock-body{ font-size:13.5px; line-height:1.55; color:rgba(243,237,226,0.62); max-width:250px; margin-bottom:28px; }
@@ -204,7 +221,7 @@
     margin-bottom:14px;
   }
   .lock-stat .k{ font-size:12px; color:rgba(243,237,226,0.5); }
-  .lock-stat .v{ font-size:13px; font-weight:700; color:var(--amber-bright); }
+  .lock-stat .v{ font-size:13px; font-weight:700; color:var(--amber-bright); transition:color .2s ease; }
   .fake-btn{
     width:100%;
     padding:14px;
@@ -213,11 +230,29 @@
     font-size:13.5px;
     font-weight:600;
     margin-top:8px;
+    border:none;
+    cursor:pointer;
+    font-family:inherit;
   }
   .fake-btn.disabled{
     background:rgba(255,255,255,0.03);
     color:rgba(243,237,226,0.28);
     border:1px solid var(--line);
+    cursor:not-allowed;
+  }
+  .fake-btn.live{
+    background:rgba(224,164,88,0.14);
+    color:var(--amber-bright);
+    border:1px solid rgba(224,164,88,0.4);
+  }
+  .fake-btn.live:active{ transform:scale(0.98); }
+  .shake{ animation:shake .4s ease; }
+  @keyframes shake{
+    0%,100%{ transform:translateX(0); }
+    20%{ transform:translateX(-6px); }
+    40%{ transform:translateX(5px); }
+    60%{ transform:translateX(-4px); }
+    80%{ transform:translateX(3px); }
   }
 
   /* ---- screen 3: earned freedom ---- */
@@ -253,63 +288,89 @@
   .streak-card .sub{ font-size:12px; color:var(--sage); margin-top:4px; }
 
   /* ---- screen 4: time saved ---- */
-  .saved-hero{
-    text-align:center;
-    margin-bottom:22px;
-  }
+  .saved-hero{ text-align:center; margin-bottom:22px; }
   .saved-hero .cap{ font-size:12px; color:rgba(243,237,226,0.5); margin-bottom:6px; }
   .saved-hero .num{ font-size:38px; font-weight:800; letter-spacing:-0.02em; }
   .saved-hero .num .unit{ font-size:18px; font-weight:700; color:rgba(243,237,226,0.6); margin-left:4px; }
   .saved-hero .sub{ font-size:12px; color:var(--sage); margin-top:6px; }
 
   .week-chart{
-    display:flex;
-    align-items:flex-end;
-    justify-content:space-between;
-    gap:8px;
-    height:110px;
-    margin-bottom:8px;
-    padding:0 2px;
+    display:flex; align-items:flex-end; justify-content:space-between;
+    gap:8px; height:110px; margin-bottom:8px; padding:0 2px;
   }
   .week-bar-col{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:flex-end;
-    height:100%;
-    gap:6px;
+    flex:1; display:flex; flex-direction:column; align-items:center;
+    justify-content:flex-end; height:100%; gap:6px;
   }
-  .week-bar{
-    width:100%;
-    max-width:22px;
-    border-radius:6px 6px 3px 3px;
-    background:var(--amber-bright);
-  }
+  .week-bar{ width:100%; max-width:22px; border-radius:6px 6px 3px 3px; background:var(--amber-bright); }
   .week-bar.today{ background:var(--sage); }
   .week-bar-label{ font-size:10px; color:rgba(243,237,226,0.45); }
-  .week-caption{
-    font-size:11.5px; color:rgba(243,237,226,0.5);
-    text-align:center; margin-bottom:24px;
-  }
+  .week-caption{ font-size:11.5px; color:rgba(243,237,226,0.5); text-align:center; margin-bottom:24px; }
 
   .equiv-card{
-    width:100%;
-    background:rgba(255,255,255,0.04);
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:15px 16px;
-    display:flex; align-items:center; gap:12px;
-    margin-bottom:10px;
+    width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--line);
+    border-radius:14px; padding:15px 16px; display:flex; align-items:center; gap:12px; margin-bottom:10px;
   }
   .equiv-icon{
     width:36px; height:36px; border-radius:10px; flex-shrink:0;
-    background:rgba(224,164,88,0.14);
-    display:flex; align-items:center; justify-content:center;
-    font-size:16px;
+    background:rgba(224,164,88,0.14); display:flex; align-items:center; justify-content:center; font-size:16px;
   }
   .equiv-text{ font-size:12.5px; line-height:1.4; color:rgba(243,237,226,0.75); }
   .equiv-text b{ color:var(--cream); }
+
+  /* ---- screen 5: setup ---- */
+  .setup-intro{ font-size:12.5px; line-height:1.5; color:rgba(243,237,226,0.6); margin-bottom:18px; }
+  .setup-app-card{
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:13px 14px;
+    margin-bottom:10px;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .setup-app-card.selected{ border-color:rgba(224,164,88,0.4); background:rgba(224,164,88,0.05); }
+  .setup-app-top{ display:flex; align-items:center; gap:10px; cursor:pointer; }
+  .setup-app-name{ flex:1; font-size:14px; font-weight:600; }
+  .toggle{ width:38px; height:22px; border-radius:999px; background:rgba(255,255,255,0.12); position:relative; flex-shrink:0; transition:background .2s ease; }
+  .toggle.on{ background:var(--amber-bright); }
+  .toggle-knob{ width:16px; height:16px; border-radius:50%; background:var(--cream); position:absolute; top:3px; left:3px; transition:left .2s ease; }
+  .toggle.on .toggle-knob{ left:19px; }
+  .setup-slider-row{ display:flex; align-items:center; gap:10px; margin-top:11px; opacity:1; transition:opacity .2s ease; }
+  .setup-slider-row.disabled{ opacity:0.3; pointer-events:none; }
+  .setup-slider-row input[type=range]{ flex:1; }
+  .setup-slider-value{ font-size:11px; color:rgba(243,237,226,0.65); min-width:70px; text-align:right; font-weight:700; font-variant-numeric:tabular-nums; }
+
+  input[type=range]{
+    -webkit-appearance:none; appearance:none;
+    width:100%; height:4px; border-radius:2px;
+    background:rgba(255,255,255,0.14);
+    outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+    background:var(--amber-bright); border:2px solid var(--navy-deep); cursor:pointer; margin-top:-6px;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:16px; height:16px; border-radius:50%; background:var(--amber-bright);
+    border:2px solid var(--navy-deep); cursor:pointer;
+  }
+  input[type=range]::-moz-range-track{ height:4px; border-radius:2px; background:rgba(255,255,255,0.14); }
+
+  .setup-save-btn{
+    width:100%; padding:14px; border-radius:14px; text-align:center;
+    font-size:14px; font-weight:700; margin-top:8px;
+    background:var(--amber-bright); color:var(--navy-deep);
+    border:none; cursor:pointer; font-family:inherit;
+  }
+  .setup-save-btn:active{ transform:scale(0.98); }
+
+  .toast{
+    position:absolute; bottom:46px; left:50%; transform:translateX(-50%) translateY(8px);
+    background:var(--sage); color:var(--navy-deep); font-size:12px; font-weight:700;
+    padding:9px 18px; border-radius:999px; opacity:0; pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease; z-index:30; white-space:nowrap;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 
   .watermark{
     position:absolute; bottom:10px; left:0; right:0;
@@ -318,6 +379,7 @@
     letter-spacing:0.08em;
     color:rgba(243,237,226,0.28);
     z-index:15;
+    pointer-events:none;
   }
 
   @media (max-width:380px){
@@ -331,6 +393,7 @@
   <div class="stage-label"><span class="dot"></span>WARDEN — CONCEPT PREVIEW</div>
 
   <div class="tabs" role="tablist" aria-label="Preview screens">
+    <button data-screen="setup">Setup</button>
     <button class="active" data-screen="home">Today</button>
     <button data-screen="locked">Locked</button>
     <button data-screen="earned">Earned freedom</button>
@@ -340,7 +403,23 @@
   <div class="phone">
     <div class="notch"></div>
 
-    <!-- SCREEN 1: HOME / TODAY -->
+    <!-- SCREEN: SETUP (interactive) -->
+    <div class="screen" id="screen-setup">
+      <div class="top-row">
+        <div class="brand-mark">
+          <svg class="eye-badge" viewBox="0 0 160 160" aria-hidden="true"><path d="M28 80 A60 60 0 0 1 132 80 A60 60 0 0 1 28 80 Z" fill="#F3EDE2"/><circle cx="80" cy="80" r="14" fill="#1F2A44"/><circle cx="80" cy="80" r="5" fill="#E0A458"/></svg>
+          Warden
+        </div>
+      </div>
+      <div class="headline" style="margin-bottom:6px;">Choose what to guard</div>
+      <div class="setup-intro">Turn on the apps you want Warden to watch, then drag each slider to set a daily limit. You can change this anytime.</div>
+
+      <div id="setup-app-list"></div>
+
+      <button class="setup-save-btn" onclick="saveSetup()">Save & update Today</button>
+    </div>
+
+    <!-- SCREEN: HOME / TODAY -->
     <div class="screen active" id="screen-home">
       <div class="top-row">
         <div class="brand-mark">
@@ -351,66 +430,46 @@
       </div>
 
       <div class="greeting">Tuesday, September 29</div>
-      <div class="headline">You're within your limits today</div>
+      <div class="headline" id="today-headline">You're within your limits today</div>
 
       <div class="ring-wrap">
-        <div class="ring">
+        <div class="ring" id="today-ring">
           <div class="ring-inner">
-            <div class="num">1h 42m</div>
-            <div class="cap">of 2h 15m used</div>
+            <div class="num" id="ring-num">1h 42m</div>
+            <div class="cap" id="ring-cap">of 2h 15m used</div>
           </div>
         </div>
       </div>
 
-      <div class="section-title">MONITORED APPS</div>
-      <div class="app-row">
-        <div class="app-icon" style="background:#E1306C33; color:#E1306C;">IG</div>
-        <div class="app-meta">
-          <div class="app-name">Instagram</div>
-          <div class="app-time">52 min today</div>
-        </div>
-        <div class="app-status status-ok">On track</div>
+      <div class="section-title">
+        <span>MONITORED APPS</span>
+        <span class="link" onclick="goToTab('setup')">Edit</span>
       </div>
-      <div class="app-row">
-        <div class="app-icon" style="background:#00000033; color:#F3EDE2;">TT</div>
-        <div class="app-meta">
-          <div class="app-name">TikTok</div>
-          <div class="app-time">38 min today</div>
-        </div>
-        <div class="app-status status-ok">On track</div>
-      </div>
-      <div class="app-row">
-        <div class="app-icon" style="background:#E0A45833; color:#E0A458;">X</div>
-        <div class="app-meta">
-          <div class="app-name">X</div>
-          <div class="app-time">12 min — 3 reopens</div>
-        </div>
-        <div class="app-status status-watch">Watching</div>
-      </div>
+      <div id="today-app-list"></div>
     </div>
 
-    <!-- SCREEN 2: LOCKED (STRICT) -->
+    <!-- SCREEN: LOCKED (STRICT, interactive) -->
     <div class="screen lock-screen" id="screen-locked">
       <span class="pill strict" style="margin-bottom:20px;">Strict mode</span>
-      <div class="lock-icon">
+      <div class="lock-icon" id="lock-icon">
         <svg width="34" height="34" viewBox="0 0 160 160" aria-hidden="true"><path d="M28 80 A60 60 0 0 1 132 80 A60 60 0 0 1 28 80 Z" fill="none" stroke="#E0A458" stroke-width="8"/><circle cx="80" cy="80" r="10" fill="#E0A458"/></svg>
       </div>
-      <div class="lock-title">X is locked for now</div>
-      <div class="lock-body">You've tried to reopen this app 5 times in the last hour. Warden tightens the lock when it notices a pattern like this.</div>
+      <div class="lock-title" id="lock-title">X is locked for now</div>
+      <div class="lock-body" id="lock-body">You've tried to reopen this app 5 times in the last hour. Warden tightens the lock when it notices a pattern like this.</div>
 
       <div class="lock-stat">
         <span class="k">Reopen attempts today</span>
-        <span class="v">5</span>
+        <span class="v" id="attempt-count">5</span>
       </div>
       <div class="lock-stat">
         <span class="k">Lock lifts in</span>
-        <span class="v">2h 10m</span>
+        <span class="v" id="lock-timer">2h 10m</span>
       </div>
 
-      <div class="fake-btn disabled">Request 5 more minutes</div>
+      <button class="fake-btn live" id="reopen-btn" onclick="tryReopen()">Try to reopen X</button>
     </div>
 
-    <!-- SCREEN 3: EARNED FREEDOM -->
+    <!-- SCREEN: EARNED FREEDOM -->
     <div class="screen earn-screen" id="screen-earned">
       <span class="pill flexible" style="margin-bottom:20px;">Flexible mode</span>
       <div class="earn-icon">
@@ -441,7 +500,7 @@
       </div>
     </div>
 
-    <!-- SCREEN 4: TIME SAVED -->
+    <!-- SCREEN: TIME SAVED -->
     <div class="screen" id="screen-saved">
       <div class="top-row">
         <div class="brand-mark">
@@ -457,7 +516,7 @@
         <div class="sub">↑ 38% less than your old average</div>
       </div>
 
-      <div class="section-title">LAST 7 DAYS</div>
+      <div class="section-title"><span>LAST 7 DAYS</span></div>
       <div class="week-chart">
         <div class="week-bar-col"><div class="week-bar" style="height:38%;"></div><div class="week-bar-label">Wed</div></div>
         <div class="week-bar-col"><div class="week-bar" style="height:52%;"></div><div class="week-bar-label">Thu</div></div>
@@ -469,7 +528,7 @@
       </div>
       <div class="week-caption">Minutes saved per day, vs. your pre-Warden average</div>
 
-      <div class="section-title">SINCE YOU STARTED</div>
+      <div class="section-title"><span>SINCE YOU STARTED</span></div>
       <div class="equiv-card">
         <div class="equiv-icon">⏱️</div>
         <div class="equiv-text"><b>21h 15m</b> saved in 9 days — about <b>2h 22m</b> a day back in your pocket.</div>
@@ -480,26 +539,175 @@
       </div>
     </div>
 
+    <div class="toast" id="toast"></div>
     <div class="watermark">CONCEPT PREVIEW · NOT A LIVE APP YET</div>
   </div>
 </div>
 
 <script>
+  /* ---------------- state ---------------- */
+  const state = {
+    apps: [
+      { id:'ig', name:'Instagram', icon:'IG', color:'#E1306C', selected:true,  limit:60 },
+      { id:'tt', name:'TikTok',    icon:'TT', color:'#3A3A3A', colorText:'#F3EDE2', selected:true,  limit:45 },
+      { id:'x',  name:'X',         icon:'X',  color:'#E0A458', selected:true,  limit:20 },
+      { id:'fb', name:'Facebook',  icon:'FB', color:'#4267B2', selected:false, limit:30 },
+    ],
+    attempts: 5,
+    strictStage: 0, // 0..3, escalates each time you try to bypass
+  };
+
+  const STAGES = [
+    { title:'X is locked for now', body:"You've tried to reopen this app {n} times in the last hour. Warden tightens the lock when it notices a pattern like this.", timer:'2h 10m', tint:'rgba(224,164,88,0.12)', border:'rgba(224,164,88,0.35)', btn:'Try to reopen X' },
+    { title:'Still locked — and tighter now', body:"That's {n} attempts. Warden just extended the lock. Fighting it makes it stricter, not looser.", timer:'3h 40m', tint:'rgba(224,164,88,0.18)', border:'rgba(224,164,88,0.5)', btn:'Try again anyway' },
+    { title:'Fully locked for the rest of the day', body:"{n} attempts is Warden's limit. X stays locked until tomorrow — no overrides left today.", timer:'Tomorrow, 6:00 AM', tint:'rgba(208,140,58,0.22)', border:'rgba(208,140,58,0.6)', btn:'Locked' },
+  ];
+
+  /* ---------------- tab switching ---------------- */
   const buttons = document.querySelectorAll('.tabs button');
   const screens = {
-    home: document.getElementById('screen-home'),
+    setup:  document.getElementById('screen-setup'),
+    home:   document.getElementById('screen-home'),
     locked: document.getElementById('screen-locked'),
     earned: document.getElementById('screen-earned'),
-    saved: document.getElementById('screen-saved'),
+    saved:  document.getElementById('screen-saved'),
   };
-  buttons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      buttons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      Object.values(screens).forEach(s => s.classList.remove('active'));
-      screens[btn.dataset.screen].classList.add('active');
-    });
-  });
+  function activateTab(name){
+    buttons.forEach(b => b.classList.toggle('active', b.dataset.screen === name));
+    Object.entries(screens).forEach(([k,el]) => el.classList.toggle('active', k === name));
+  }
+  buttons.forEach(btn => btn.addEventListener('click', () => activateTab(btn.dataset.screen)));
+  function goToTab(name){ activateTab(name); }
+
+  /* ---------------- setup screen ---------------- */
+  function renderSetup(){
+    const list = document.getElementById('setup-app-list');
+    list.innerHTML = state.apps.map(a => `
+      <div class="setup-app-card ${a.selected ? 'selected' : ''}" data-id="${a.id}">
+        <div class="setup-app-top" onclick="toggleApp('${a.id}')">
+          <div class="app-icon" style="background:${a.color}33; color:${a.colorText || a.color};">${a.icon}</div>
+          <div class="setup-app-name">${a.name}</div>
+          <div class="toggle ${a.selected ? 'on' : ''}"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="setup-slider-row ${a.selected ? '' : 'disabled'}">
+          <input type="range" min="10" max="180" step="5" value="${a.limit}"
+                 oninput="onSliderInput('${a.id}', this.value)">
+          <span class="setup-slider-value" id="limit-label-${a.id}">${a.limit} min/day</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function toggleApp(id){
+    const app = state.apps.find(a => a.id === id);
+    app.selected = !app.selected;
+    renderSetup();
+  }
+
+  function onSliderInput(id, val){
+    const app = state.apps.find(a => a.id === id);
+    app.limit = parseInt(val, 10);
+    document.getElementById('limit-label-'+id).textContent = app.limit + ' min/day';
+  }
+
+  function saveSetup(){
+    renderToday();
+    showToast('Limits saved ✓');
+    activateTab('home');
+  }
+
+  /* ---------------- today screen ---------------- */
+  function renderToday(){
+    const active = state.apps.filter(a => a.selected);
+    const listEl = document.getElementById('today-app-list');
+
+    if(active.length === 0){
+      listEl.innerHTML = `<div class="empty-note">No apps selected yet. Head to Setup to pick some.</div>`;
+      document.getElementById('ring-num').textContent = '0m';
+      document.getElementById('ring-cap').textContent = 'of 0m used';
+      document.getElementById('today-ring').style.background = `conic-gradient(rgba(243,237,226,0.08) 0deg 360deg)`;
+      document.getElementById('today-headline').textContent = 'Nothing to guard yet';
+      return;
+    }
+
+    let totalLimit = 0, totalUsed = 0;
+    listEl.innerHTML = active.map(a => {
+      const used = Math.max(2, Math.round(a.limit * 0.62));
+      totalLimit += a.limit;
+      totalUsed += used;
+      const ratio = used / a.limit;
+      const watching = ratio >= 0.8;
+      return `
+        <div class="app-row" onclick="goToTab('setup')">
+          <div class="app-icon" style="background:${a.color}33; color:${a.colorText || a.color};">${a.icon}</div>
+          <div class="app-meta">
+            <div class="app-name">${a.name}</div>
+            <div class="app-time">${used} of ${a.limit} min today</div>
+          </div>
+          <div class="app-status ${watching ? 'status-watch' : 'status-ok'}">${watching ? 'Watching' : 'On track'}</div>
+          <div class="chevron">›</div>
+        </div>
+      `;
+    }).join('');
+
+    const pct = Math.min(1, totalUsed / totalLimit);
+    document.getElementById('today-ring').style.background =
+      `conic-gradient(var(--amber-bright) 0deg ${pct*360}deg, rgba(243,237,226,0.08) ${pct*360}deg 360deg)`;
+    document.getElementById('ring-num').textContent = minutesToHM(totalUsed);
+    document.getElementById('ring-cap').textContent = `of ${minutesToHM(totalLimit)} used`;
+    document.getElementById('today-headline').textContent =
+      pct >= 0.9 ? "You're close to today's limit" : "You're within your limits today";
+  }
+
+  function minutesToHM(mins){
+    const h = Math.floor(mins/60), m = mins % 60;
+    if(h === 0) return `${m}m`;
+    return `${h}h ${m}m`;
+  }
+
+  /* ---------------- locked screen ---------------- */
+  function tryReopen(){
+    state.attempts++;
+    const btn = document.getElementById('reopen-btn');
+    btn.parentElement.classList.remove('shake');
+    void btn.parentElement.offsetWidth; // restart animation
+    btn.parentElement.classList.add('shake');
+
+    if(state.strictStage < STAGES.length - 1){
+      state.strictStage++;
+    }
+    const stage = STAGES[state.strictStage];
+
+    document.getElementById('lock-title').textContent = stage.title;
+    document.getElementById('lock-body').textContent = stage.body.replace('{n}', state.attempts);
+    document.getElementById('lock-timer').textContent = stage.timer;
+    document.getElementById('attempt-count').textContent = state.attempts;
+    document.getElementById('lock-icon').style.background = stage.tint;
+    document.getElementById('lock-icon').style.borderColor = stage.border;
+
+    if(state.strictStage === STAGES.length - 1){
+      btn.textContent = stage.btn;
+      btn.classList.remove('live');
+      btn.classList.add('disabled');
+      btn.disabled = true;
+    } else {
+      btn.textContent = stage.btn;
+    }
+  }
+
+  /* ---------------- toast ---------------- */
+  let toastTimer = null;
+  function showToast(msg){
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+  }
+
+  /* ---------------- init ---------------- */
+  renderSetup();
+  renderToday();
 </script>
 
 </body>
