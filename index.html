@@ -1,2522 +1,406 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>Desafio dos Primos</title>
-<meta name="theme-color" content="#0B0D11">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Desafio">
-<link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Warden — App Concept Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+  :root{
+    --navy:#1F2A44;
+    --navy-deep:#141C30;
+    --cream:#F3EDE2;
+    --cream-dim:#DCD4C4;
+    --amber:#D08C3A;
+    --amber-bright:#E0A458;
+    --petrol:#1E3A3A;
+    --sage:#DDE6DF;
+    --ink:#10182B;
+    --line: rgba(243,237,226,0.10);
+    --line-soft: rgba(16,24,43,0.08);
+    box-sizing:border-box;
+  }
+  *{box-sizing:inherit; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'DM Sans', sans-serif;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(224,164,88,0.12), transparent 45%),
+      radial-gradient(circle at 80% 85%, rgba(30,58,58,0.4), transparent 50%),
+      var(--navy-deep);
+    min-height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px 16px;
+    color:var(--cream);
+  }
 
-:root{
-  --bg: #0B0D11;
-  --surface: #15181D;
-  --surface-2: #1D2127;
-  --line: #2C3138;
-  --chalk: #F7F8FA;
-  --chalk-soft: #9199A2;
-  --effort: #FF3B30;
-  --effort-dark: #D9291F;
-  --brass: #4A6478;
-  --c1: #FF3B30;
-  --c2: #4A6478;
-  --c3: #C1673F;
-  --c4: #8C97A6;
-  --c5: #D9A441;
-}
+  .stage{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:22px;
+    width:100%;
+    max-width:400px;
+  }
 
-*{box-sizing:border-box;}
-html,body{margin:0;padding:0;}
-body{
-  background:var(--bg);
-  background-image:
-    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(74,100,120,0.08), transparent),
-    radial-gradient(ellipse 700px 500px at 100% 20%, rgba(255,59,48,0.06), transparent);
-  color:var(--chalk);
-  font-family:'Archivo',sans-serif;
-  min-height:100vh;
-  padding:24px 16px 60px;
-}
-#app{max-width:720px;margin:0 auto;}
+  .stage-label{
+    font-size:11px;
+    letter-spacing:0.14em;
+    color:rgba(243,237,226,0.45);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .stage-label .dot{width:6px;height:6px;border-radius:50%;background:var(--amber-bright);}
 
-.eyebrow{
-  font-family:'Space Mono',monospace;
-  font-size:12px;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  color:var(--chalk-soft);
-}
+  .tabs{
+    display:flex;
+    gap:6px;
+    background:rgba(255,255,255,0.05);
+    border:1px solid var(--line);
+    padding:4px;
+    border-radius:12px;
+  }
+  .tabs button{
+    appearance:none;
+    border:none;
+    background:transparent;
+    color:rgba(243,237,226,0.55);
+    font-family:inherit;
+    font-size:13px;
+    font-weight:600;
+    padding:8px 14px;
+    border-radius:9px;
+    cursor:pointer;
+    transition:background .2s ease, color .2s ease;
+  }
+  .tabs button.active{
+    background:var(--amber);
+    color:var(--navy-deep);
+  }
 
-h1.brand{
-  font-family:'Anton',sans-serif;
-  font-weight:400;
-  font-size:34px;
-  line-height:0.95;
-  letter-spacing:.01em;
-  margin:6px 0 4px;
-  color:var(--chalk);
-}
-.tagline{
-  font-size:14px;
-  color:var(--chalk-soft);
-  margin-bottom:28px;
-}
+  /* ---- phone frame ---- */
+  .phone{
+    width:340px;
+    height:700px;
+    background:var(--navy);
+    border-radius:44px;
+    border:10px solid #0C1220;
+    box-shadow:
+      0 30px 60px -20px rgba(0,0,0,0.6),
+      0 0 0 1px rgba(255,255,255,0.03) inset;
+    position:relative;
+    overflow:hidden;
+  }
+  .notch{
+    position:absolute;
+    top:10px; left:50%; transform:translateX(-50%);
+    width:120px; height:22px;
+    background:#0C1220;
+    border-radius:0 0 16px 16px;
+    z-index:20;
+  }
+  .screen{
+    position:absolute; inset:0;
+    padding:52px 22px 26px;
+    display:none;
+    flex-direction:column;
+    animation:fade .35s ease;
+  }
+  .screen.active{display:flex;}
+  @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
 
-.card{
-  background:var(--surface);
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:28px 24px;
-}
+  /* ---- shared bits ---- */
+  .eye-badge{
+    width:30px; height:30px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .top-row{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:22px;
+  }
+  .brand-mark{
+    display:flex; align-items:center; gap:8px;
+    font-weight:700; font-size:16px; letter-spacing:-0.01em;
+  }
+  .pill{
+    font-size:11px; font-weight:600; letter-spacing:0.02em;
+    padding:5px 10px; border-radius:999px;
+    border:1px solid var(--line);
+    color:rgba(243,237,226,0.7);
+  }
+  .pill.strict{ color:var(--navy-deep); background:var(--amber-bright); border-color:transparent; }
+  .pill.standard{ color:var(--sage); border-color:rgba(221,230,223,0.35); }
+  .pill.flexible{ color:var(--amber-bright); border-color:rgba(224,164,88,0.4); }
 
-.btn{
-  font-family:'Archivo',sans-serif;
-  font-weight:700;
-  font-size:14px;
-  border:none;
-  border-radius:9px;
-  padding:13px 18px;
-  cursor:pointer;
-  transition:transform .08s ease, opacity .15s ease;
-}
-.btn:active{transform:scale(0.96);}
-.btn-primary{background:var(--effort); color:var(--chalk);}
-.btn-primary:hover{background:var(--effort-dark);}
-.btn-outline{background:transparent; color:var(--chalk); border:1.5px solid var(--line); }
-.btn-outline:hover{background:var(--surface-2); border-color:var(--chalk-soft);}
-.btn-ghost{background:transparent; color:var(--chalk-soft); font-weight:600; padding:8px 4px;}
-.btn-ghost:hover{color:var(--chalk);}
-.btn-block{width:100%;}
-input[type=text]{
-  font-family:'Archivo',sans-serif;
-  font-size:16px;
-  padding:13px 14px;
-  border-radius:9px;
-  border:1.5px solid var(--line);
-  width:100%;
-  background:var(--surface-2);
-  color:var(--chalk);
-}
-input[type=text]:focus, .btn:focus-visible, input[type=number]:focus{
-  outline:3px solid var(--brass);
-  outline-offset:1px;
-}
-input[type=number]{
-  font-family:'Space Mono',monospace;
-  font-size:15px;
-  padding:11px 12px;
-  border-radius:9px;
-  border:1.5px solid var(--line);
-  width:80px;
-  background:var(--surface-2);
-  color:var(--chalk);
-}
-input[type=date]{
-  font-family:'Space Mono',monospace;
-  font-size:14px;
-  padding:11px 12px;
-  border-radius:9px;
-  border:1.5px solid var(--line);
-  width:100%;
-  background:var(--surface-2);
-  color:var(--chalk);
-  color-scheme: dark;
-}
-input[type=date]:focus{
-  outline:3px solid var(--brass);
-  outline-offset:1px;
-}
+  /* ---- screen 1: today ---- */
+  .greeting{ font-size:13px; color:rgba(243,237,226,0.55); margin-bottom:4px; }
+  .headline{ font-size:22px; font-weight:700; letter-spacing:-0.015em; margin-bottom:26px; }
 
-/* ---- setup / identity ---- */
-.center-screen{
-  min-height:70vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.setup-box{max-width:440px; width:100%;}
-.field-label{
-  font-family:'Space Mono',monospace;
-  font-size:11px;
-  text-transform:uppercase;
-  letter-spacing:.1em;
-  color:var(--chalk-soft);
-  margin-bottom:6px;
-  display:block;
-}
-.field{margin-bottom:14px;}
-.setup-player-row{
-  display:flex;
-  gap:8px;
-  margin-bottom:10px;
-  align-items:center;
-}
-.setup-player-row input{flex:1;}
-.remove-player{
-  background:transparent;
-  border:1.5px solid var(--line);
-  border-radius:9px;
-  color:var(--chalk-soft);
-  width:44px;
-  height:44px;
-  cursor:pointer;
-  font-size:18px;
-  flex-shrink:0;
-}
-.remove-player:hover{border-color:var(--effort); color:var(--effort);}
-.choice-row{display:flex; flex-direction:column; gap:10px; margin-top:18px;}
-.choice-btn{
-  font-family:'Anton',sans-serif;
-  font-size:22px;
-  font-weight:400;
-  padding:16px 20px;
-  border-radius:12px;
-  border:2px solid var(--line);
-  background:var(--surface-2);
-  color:var(--chalk);
-  cursor:pointer;
-  text-align:left;
-  transition:background .15s ease, border-color .15s ease;
-}
-.choice-btn:hover{background:var(--surface); border-color:var(--brass);}
+  .ring-wrap{
+    display:flex; align-items:center; justify-content:center;
+    margin:6px 0 26px;
+  }
+  .ring{
+    width:168px; height:168px; border-radius:50%;
+    background: conic-gradient(var(--amber-bright) 0deg 252deg, rgba(243,237,226,0.08) 252deg 360deg);
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+  }
+  .ring::before{
+    content:"";
+    position:absolute; inset:12px;
+    border-radius:50%;
+    background:var(--navy);
+  }
+  .ring-inner{ position:relative; text-align:center; }
+  .ring-inner .num{ font-size:30px; font-weight:800; letter-spacing:-0.02em; }
+  .ring-inner .cap{ font-size:11px; color:rgba(243,237,226,0.5); margin-top:2px; }
 
-/* ---- header / tabs ---- */
-.topbar{display:flex; justify-content:space-between; align-items:flex-start;}
-.gear{
-  background:transparent;
-  border:none;
-  cursor:pointer;
-  font-size:20px;
-  color:var(--chalk-soft);
-  padding:6px;
-  line-height:1;
-}
-.gear:hover{color:var(--chalk);}
-.date-line{
-  font-family:'Space Mono',monospace;
-  font-size:12px;
-  color:var(--chalk-soft);
-  text-transform:capitalize;
-  margin-bottom:20px;
-}
-.tabs{
-  display:flex;
-  gap:6px;
-  margin-bottom:22px;
-  border-bottom:1px solid var(--line);
-}
-.tab-btn{
-  font-family:'Archivo',sans-serif;
-  font-weight:700;
-  font-size:14px;
-  background:transparent;
-  border:none;
-  color:var(--chalk-soft);
-  padding:10px 4px 12px;
-  cursor:pointer;
-  position:relative;
-  margin-right:18px;
-}
-.tab-btn:hover{color:var(--chalk);}
-.tab-btn.active{color:var(--chalk);}
-.tab-btn.active::after{
-  content:'';
-  position:absolute;
-  left:0; right:0; bottom:-1px;
-  height:2px;
-  background:var(--effort);
-}
+  .section-title{
+    font-size:12px; letter-spacing:0.08em; color:rgba(243,237,226,0.4);
+    margin-bottom:10px;
+  }
+  .app-row{
+    display:flex; align-items:center; gap:12px;
+    padding:11px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .app-row:last-child{ border-bottom:none; }
+  .app-icon{
+    width:34px; height:34px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:700;
+    color:var(--navy-deep);
+  }
+  .app-meta{ flex:1; }
+  .app-name{ font-size:14px; font-weight:600; }
+  .app-time{ font-size:12px; color:rgba(243,237,226,0.5); margin-top:1px; }
+  .app-status{ font-size:11px; font-weight:600; }
+  .status-ok{ color:var(--sage); }
+  .status-watch{ color:var(--amber-bright); }
 
-.progress-toggle{
-  display:inline-flex;
-  background:var(--surface-2);
-  border-radius:10px;
-  padding:3px;
-  gap:2px;
-  margin-bottom:18px;
-}
-.progress-toggle-btn{
-  font-family:'Archivo',sans-serif;
-  font-weight:700;
-  font-size:12px;
-  background:transparent;
-  border:none;
-  color:var(--chalk-soft);
-  padding:8px 14px;
-  border-radius:8px;
-  cursor:pointer;
-}
-.progress-toggle-btn.active{
-  background:var(--surface);
-  color:var(--chalk);
-}
+  /* ---- screen 2: locked ---- */
+  .lock-screen{ align-items:center; text-align:center; justify-content:flex-start; padding-top:64px; }
+  .lock-icon{
+    width:80px; height:80px; border-radius:50%;
+    background:rgba(224,164,88,0.12);
+    border:1px solid rgba(224,164,88,0.35);
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:26px;
+  }
+  .lock-title{ font-size:19px; font-weight:700; margin-bottom:10px; letter-spacing:-0.01em; }
+  .lock-body{ font-size:13.5px; line-height:1.55; color:rgba(243,237,226,0.62); max-width:250px; margin-bottom:28px; }
+  .lock-stat{
+    width:100%;
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px 16px;
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:14px;
+  }
+  .lock-stat .k{ font-size:12px; color:rgba(243,237,226,0.5); }
+  .lock-stat .v{ font-size:13px; font-weight:700; color:var(--amber-bright); }
+  .fake-btn{
+    width:100%;
+    padding:14px;
+    border-radius:14px;
+    text-align:center;
+    font-size:13.5px;
+    font-weight:600;
+    margin-top:8px;
+  }
+  .fake-btn.disabled{
+    background:rgba(255,255,255,0.03);
+    color:rgba(243,237,226,0.28);
+    border:1px solid var(--line);
+  }
 
-/* ---- my board (full) ---- */
-.board{
-  background:var(--surface);
-  border-radius:16px;
-  padding:20px 18px 22px;
-  border:2px solid var(--line);
-  margin-bottom:16px;
-}
-.board.hit{border-color:var(--brass);}
-.board.hit .big-num{color:var(--brass);}
-.board-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:baseline;
-  margin-bottom:10px;
-}
-.board-name{font-weight:700; font-size:15px;}
-.board-name .you-tag{
-  font-family:'Space Mono',monospace;
-  font-weight:400;
-  font-size:10px;
-  color:var(--chalk-soft);
-  margin-left:6px;
-  text-transform:uppercase;
-}
-.streak-tag{
-  font-family:'Space Mono',monospace;
-  font-size:11px;
-  color:var(--brass);
-  white-space:nowrap;
-}
-.big-num{
-  font-family:'Anton',sans-serif;
-  font-size:46px;
-  line-height:1;
-  margin-bottom:2px;
-}
-.big-num-suffix{
-  font-family:'Space Mono',monospace;
-  font-size:12px;
-  color:var(--chalk-soft);
-  margin-bottom:12px;
-}
-.bonus-note{
-  font-family:'Space Mono',monospace;
-  font-size:11px;
-  color:var(--brass);
-  margin:-8px 0 12px;
-}
-.champ-badge{
-  display:inline-block;
-  font-family:'Space Mono',monospace;
-  font-size:11px;
-  font-weight:700;
-  color:var(--bg);
-  background:var(--brass);
-  padding:4px 10px;
-  border-radius:20px;
-  margin-bottom:14px;
-}
-.tally-wrap{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px 10px;
-  margin-bottom:16px;
-  min-height:28px;
-}
-.tally-group{
-  position:relative;
-  width:26px;
-  height:24px;
-  display:flex;
-  gap:3px;
-  align-items:flex-end;
-}
-.tally-bar{width:3px; height:22px; background:var(--chalk); border-radius:1px;}
-.tally-bar.bonus{background:var(--brass);}
-.tally-bar.empty{background:transparent; border:1px dashed rgba(243,239,226,0.2); width:2px;}
-.tally-slash{
-  position:absolute;
-  left:-2px; top:10px;
-  width:29px; height:3px;
-  background:var(--effort);
-  border-radius:1px;
-  transform:rotate(-32deg);
-}
-.tally-slash.bonus{background:var(--brass);}
-.quick-add{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;}
-.quick-add .btn{flex:1 1 auto; min-width:52px;}
-.custom-row{display:flex; gap:8px; margin-bottom:6px;}
-.custom-row .btn{flex-shrink:0;}
-.undo-row{min-height:24px;}
+  /* ---- screen 3: earned freedom ---- */
+  .earn-screen{ align-items:center; text-align:center; padding-top:56px; }
+  .earn-icon{
+    width:80px; height:80px; border-radius:50%;
+    background:rgba(221,230,223,0.1);
+    border:1px solid rgba(221,230,223,0.3);
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:24px;
+  }
+  .earn-title{ font-size:19px; font-weight:700; margin-bottom:8px; letter-spacing:-0.01em; }
+  .earn-body{ font-size:13.5px; line-height:1.55; color:rgba(243,237,226,0.62); max-width:250px; margin-bottom:26px; }
+  .level-track{
+    width:100%;
+    display:flex; flex-direction:column; gap:10px;
+    margin-bottom:24px;
+  }
+  .level-row{ display:flex; align-items:center; gap:10px; }
+  .level-name{ width:76px; font-size:12px; font-weight:600; text-align:left; color:rgba(243,237,226,0.55); }
+  .level-bar-bg{ flex:1; height:8px; border-radius:99px; background:rgba(255,255,255,0.06); overflow:hidden; }
+  .level-bar-fill{ height:100%; border-radius:99px; }
+  .streak-card{
+    width:100%;
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px;
+    text-align:left;
+  }
+  .streak-card .k{ font-size:11px; color:rgba(243,237,226,0.45); margin-bottom:4px; }
+  .streak-card .v{ font-size:20px; font-weight:800; }
+  .streak-card .sub{ font-size:12px; color:var(--sage); margin-top:4px; }
 
-/* ---- history ---- */
-.history{margin-top:26px;}
-.history h2, .section-title{
-  font-family:'Anton',sans-serif;
-  font-weight:400;
-  font-size:20px;
-  margin:0 0 14px;
-  letter-spacing:.01em;
-}
+  .watermark{
+    position:absolute; bottom:10px; left:0; right:0;
+    text-align:center;
+    font-size:10px;
+    letter-spacing:0.08em;
+    color:rgba(243,237,226,0.28);
+    z-index:15;
+  }
 
-/* ---- ranking ---- */
-.podium{
-  display:flex;
-  align-items:flex-end;
-  gap:8px;
-  margin-bottom:22px;
-}
-.podium-col{
-  flex:1;
-  text-align:center;
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-end;
-  animation:podium-rise .5s ease both;
-}
-.podium-col.pod-2{animation-delay:.1s;}
-.podium-col.pod-3{animation-delay:.2s;}
-@keyframes podium-rise{
-  from{opacity:0; transform:translateY(14px);}
-  to{opacity:1; transform:translateY(0);}
-}
-.podium-emoji{font-size:26px; margin-bottom:4px;}
-.podium-name{
-  font-weight:700;
-  font-size:13px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:5px;
-  margin-bottom:2px;
-  white-space:nowrap;
-  overflow:hidden;
-}
-.podium-title{
-  font-family:'Space Mono',monospace;
-  font-size:9px;
-  text-transform:uppercase;
-  letter-spacing:.08em;
-  color:var(--brass);
-  margin-bottom:8px;
-  white-space:nowrap;
-}
-.podium-block{
-  background:var(--surface);
-  border:1.5px solid var(--line);
-  border-radius:10px 10px 0 0;
-  padding:12px 6px 10px;
-}
-.pod-1 .podium-block{
-  border-color:var(--brass);
-  padding-top:26px;
-  background:linear-gradient(180deg, rgba(214,174,85,0.12), var(--surface));
-}
-.pod-2 .podium-block{padding-top:14px;}
-.pod-3 .podium-block{padding-top:8px;}
-.podium-total{
-  font-family:'Anton',sans-serif;
-  font-size:24px;
-  line-height:1;
-}
-.pod-1 .podium-total{font-size:32px; color:var(--brass);}
-.podium-total-label{
-  font-family:'Space Mono',monospace;
-  font-size:9px;
-  color:var(--chalk-soft);
-  margin-top:2px;
-}
-
-.rank-list{display:flex; flex-direction:column; gap:10px;}
-.rank-card{
-  display:flex;
-  gap:12px;
-  background:var(--surface);
-  border:1.5px solid var(--line);
-  border-radius:12px;
-  padding:14px;
-  animation:rank-in .4s ease both;
-}
-.rank-card:nth-child(2){animation-delay:.05s;}
-.rank-card:nth-child(3){animation-delay:.1s;}
-.rank-card:nth-child(4){animation-delay:.15s;}
-.rank-card:nth-child(5){animation-delay:.2s;}
-@keyframes rank-in{
-  from{opacity:0; transform:translateX(-10px);}
-  to{opacity:1; transform:translateX(0);}
-}
-.rank-card.leader{border-color:var(--brass);}
-.rank-card-pos{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:2px;
-  font-size:22px;
-  min-width:44px;
-}
-.rank-medal{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  width:30px;
-  height:30px;
-  border-radius:50%;
-  font-size:15px;
-  line-height:1;
-}
-.rank-medal-gold{background:var(--brass);}
-.rank-medal-silver{background:#B7BFC6;}
-.rank-medal-bronze{background:#B5713F;}
-.rank-medal-none{background:transparent; font-size:20px;}
-.rank-card-num{
-  font-family:'Anton',sans-serif;
-  font-size:13px;
-  color:var(--chalk-soft);
-}
-.rank-card-body{flex:1; min-width:0;}
-.rank-card-top{
-  display:flex;
-  justify-content:space-between;
-  align-items:baseline;
-  gap:8px;
-}
-.rank-card-name{
-  font-weight:700;
-  font-size:15px;
-  display:flex;
-  align-items:center;
-  gap:7px;
-  overflow:hidden;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-}
-.rank-card-total{
-  font-family:'Anton',sans-serif;
-  font-size:22px;
-  color:var(--brass);
-}
-.rank-card-title{
-  font-family:'Space Mono',monospace;
-  font-size:10px;
-  text-transform:uppercase;
-  letter-spacing:.08em;
-  color:var(--brass);
-  margin:1px 0 8px;
-}
-.rank-bar-track{
-  height:6px;
-  background:var(--surface-2);
-  border-radius:3px;
-  overflow:hidden;
-  margin-bottom:7px;
-}
-.rank-bar-fill{
-  height:100%;
-  border-radius:3px;
-  transition:width .6s ease;
-}
-.rank-card-meta{
-  display:flex;
-  justify-content:space-between;
-  gap:8px;
-  font-family:'Space Mono',monospace;
-  font-size:10px;
-  color:var(--chalk-soft);
-  flex-wrap:wrap;
-}
-.rank-note{
-  font-family:'Space Mono',monospace;
-  font-size:11px;
-  color:var(--chalk-soft);
-  margin-top:14px;
-}
-
-/* ---- progress ---- */
-.stat-grid{
-  display:grid;
-  grid-template-columns:repeat(2, 1fr);
-  gap:10px;
-  margin-bottom:8px;
-}
-.stat-card{
-  background:var(--surface);
-  border:1px solid var(--line);
-  border-radius:12px;
-  padding:14px 16px;
-}
-.stat-name{
-  font-weight:700;
-  font-size:13px;
-  margin-bottom:8px;
-  display:flex;
-  align-items:center;
-  gap:7px;
-}
-.stat-row{display:flex; align-items:baseline; gap:8px; padding:2px 0;}
-.stat-num{
-  font-family:'Space Mono',monospace;
-  font-weight:700;
-  font-size:14px;
-  color:var(--brass);
-  min-width:40px;
-}
-.stat-label{font-size:11px; color:var(--chalk-soft);}
-
-.legend{display:flex; flex-wrap:wrap; gap:14px; margin-bottom:12px;}
-.legend-item{
-  font-family:'Space Mono',monospace;
-  font-size:11px;
-  color:var(--chalk-soft);
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-}
-.legend-dot{
-  width:9px; height:9px;
-  border-radius:2px;
-  display:inline-block;
-}
-.legend-dash{
-  width:14px; height:0;
-  border-top:2px dashed var(--chalk-soft);
-  display:inline-block;
-}
-.chart-scroll{overflow-x:auto; padding-bottom:6px; margin-bottom:8px;}
-.chart-scroll svg{display:block;}
-.goal-line{stroke:var(--chalk-soft); stroke-width:1; stroke-dasharray:4 3;}
-.chart-label{
-  font-family:'Space Mono',monospace;
-  font-size:9px;
-  fill:var(--chalk-soft);
-}
-.chart-value-label{
-  font-family:'Space Mono',monospace;
-  font-weight:700;
-  font-size:11px;
-  fill:var(--chalk);
-}
-.linechart-wrap{
-  display:flex;
-  align-items:flex-start;
-  gap:0;
-}
-.linechart-axis{
-  flex-shrink:0;
-}
-.linechart-axis svg{display:block;}
-.linechart-plot-scroll{
-  flex:1;
-  min-width:0;
-  margin-bottom:0;
-}
-.linechart-grid{
-  stroke:var(--line);
-  stroke-width:1;
-}
-.linechart-ylabel, .linechart-xlabel{
-  font-family:'Space Mono',monospace;
-  font-size:10px;
-  fill:var(--chalk-soft);
-}
-.clickable-bar{cursor:pointer;}
-.clickable-bar:hover{opacity:0.75;}
-.chart-hint{
-  font-family:'Space Mono',monospace;
-  font-size:10px;
-  color:var(--chalk-soft);
-  margin:-6px 0 10px;
-}
-.chart-hint-link{
-  color:var(--brass);
-  text-decoration:underline;
-  cursor:pointer;
-}
-.chart-clickable{cursor:pointer; border-radius:10px; transition:background .15s ease;}
-.chart-clickable:hover{background:var(--surface-2);}
-.detail-modal{max-width:640px;}
-
-/* ---- avatar chip (scales to any number of people) ---- */
-.avatar-chip{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  width:28px;
-  height:28px;
-  border-radius:50%;
-  background:var(--surface-2);
-  border:1px solid var(--line);
-  color:var(--chalk);
-  font-family:'Space Mono',monospace;
-  font-size:11px;
-  font-weight:700;
-  flex-shrink:0;
-}
-
-/* ---- week strip on your board ---- */
-.week-strip{
-  display:flex;
-  gap:6px;
-  margin-bottom:18px;
-}
-.week-pill{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:2px;
-  padding:6px 2px;
-  border-radius:8px;
-  background:var(--surface-2);
-  border:1px solid var(--line);
-}
-.week-pill.hit{border-color:var(--brass); background:rgba(214,174,85,0.08);}
-.week-day-label{
-  font-family:'Space Mono',monospace;
-  font-size:9px;
-  color:var(--chalk-soft);
-  text-transform:uppercase;
-}
-.week-count{
-  font-family:'Space Mono',monospace;
-  font-size:12px;
-  font-weight:700;
-  color:var(--chalk);
-}
-.week-pill.hit .week-count{color:var(--brass);}
-
-/* ---- searchable roster list (scales to 20+ people) ---- */
-.roster-search{margin-bottom:14px;}
-.roster-search input{
-  font-family:'Archivo',sans-serif;
-  font-size:14px;
-  padding:11px 14px;
-  border-radius:9px;
-  border:1.5px solid var(--line);
-  width:100%;
-  background:var(--surface-2);
-  color:var(--chalk);
-}
-.roster-list{display:flex; flex-direction:column; gap:8px; max-height:520px; overflow-y:auto;}
-.roster-row{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  background:var(--surface);
-  border:1px solid var(--line);
-  border-radius:10px;
-  padding:9px 12px;
-}
-.roster-row.hit{border-color:var(--brass);}
-.roster-row.champ{border-color:var(--brass); background:rgba(214,174,85,0.06);}
-.roster-mid{flex:1; min-width:0;}
-.roster-name{
-  font-size:13px;
-  font-weight:600;
-  margin-bottom:5px;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.champ-badge-sm{
-  display:inline-block;
-  font-family:'Space Mono',monospace;
-  font-size:9px;
-  font-weight:700;
-  color:var(--bg);
-  background:var(--brass);
-  padding:2px 7px;
-  border-radius:20px;
-  margin-bottom:5px;
-}
-.roster-bar-track{
-  height:5px;
-  background:var(--surface-2);
-  border-radius:3px;
-  overflow:hidden;
-}
-.roster-bar-fill{height:100%; border-radius:3px; transition:width .3s ease;}
-.roster-count{
-  font-family:'Space Mono',monospace;
-  font-size:14px;
-  font-weight:700;
-  color:var(--chalk);
-  display:flex;
-  align-items:center;
-  gap:6px;
-  flex-shrink:0;
-}
-.roster-streak{
-  font-family:'Space Mono',monospace;
-  font-size:10px;
-  color:var(--brass);
-  font-weight:400;
-}
-.empty-note{
-  font-family:'Space Mono',monospace;
-  font-size:12px;
-  color:var(--chalk-soft);
-  text-align:center;
-  padding:20px 0;
-}
-
-/* ---- mural ---- */
-.mural-composer{
-  background:var(--surface);
-  border:1px solid var(--line);
-  border-radius:12px;
-  padding:12px;
-  margin-bottom:18px;
-}
-.composer-row{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  flex-wrap:wrap;
-}
-.composer-row input[type=text]{
-  flex:1;
-  min-width:140px;
-  padding:10px 12px;
-  font-size:14px;
-}
-.composer-image-btn{
-  font-size:18px;
-  cursor:pointer;
-  padding:8px;
-  border-radius:8px;
-  flex-shrink:0;
-}
-.composer-image-btn:hover{background:var(--surface-2);}
-.composer-preview{
-  position:relative;
-  display:inline-block;
-  margin-bottom:10px;
-}
-.composer-preview img{
-  max-width:120px;
-  max-height:120px;
-  border-radius:8px;
-  display:block;
-}
-.composer-preview-x{
-  position:absolute;
-  top:-8px;
-  right:-8px;
-  width:22px;
-  height:22px;
-  border-radius:50%;
-  background:var(--effort);
-  color:var(--chalk);
-  border:none;
-  font-size:14px;
-  line-height:1;
-  cursor:pointer;
-}
-
-.mural-feed{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-.mural-card{
-  background:var(--surface);
-  border:1px solid var(--line);
-  border-radius:12px;
-  padding:12px 14px;
-}
-.mural-card.poke{border-color:var(--brass);}
-.mural-card-head{
-  display:flex;
-  align-items:center;
-  gap:9px;
-  margin-bottom:8px;
-}
-.mural-delete-btn{
-  background:transparent;
-  border:none;
-  color:var(--chalk-soft);
-  font-size:15px;
-  cursor:pointer;
-  padding:4px 6px;
-  flex-shrink:0;
-}
-.mural-delete-btn:hover{color:var(--effort);}
-.mural-avatar{width:30px; height:30px; font-size:11px; flex-shrink:0;}
-.mural-card-meta{flex:1; min-width:0;}
-.mural-card-name{
-  font-size:13px;
-  font-weight:700;
-}
-.mural-poke-tag{
-  font-family:'Space Mono',monospace;
-  font-weight:400;
-  font-size:11px;
-  color:var(--brass);
-}
-.mural-card-time{
-  font-family:'Space Mono',monospace;
-  font-size:10px;
-  color:var(--chalk-soft);
-}
-.mural-card-text{
-  font-size:14px;
-  line-height:1.5;
-  margin-bottom:8px;
-}
-.mural-card-image{
-  max-width:100%;
-  border-radius:8px;
-  display:block;
-}
-
-/* ---- modal ---- */
-.modal-overlay{
-  position:fixed; inset:0;
-  background:rgba(10,11,7,0.65);
-  display:flex; align-items:center; justify-content:center;
-  padding:20px;
-  z-index:50;
-}
-.modal{
-  background:var(--surface);
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:26px;
-  max-width:400px;
-  width:100%;
-  color:var(--chalk);
-  max-height:85vh;
-  overflow-y:auto;
-}
-.modal h3{
-  font-family:'Anton',sans-serif;
-  font-weight:400;
-  font-size:22px;
-  margin:0 0 16px;
-}
-.modal-actions{display:flex; gap:10px; margin-top:20px;}
-.danger-zone{margin-top:22px; padding-top:18px; border-top:1px solid var(--line);}
-.danger-zone p{font-size:12px; color:var(--chalk-soft); margin-bottom:10px;}
-
-.celebration-modal{
-  text-align:center;
-  border:2px solid var(--brass);
-}
-.celebration-emoji{
-  font-size:52px;
-  margin-bottom:6px;
-}
-.celebration-modal h3{
-  text-align:center;
-}
-
-.clickable-name{cursor:pointer;}
-.clickable-name:hover{color:var(--brass);}
-.clickable-name:hover .roster-name{color:var(--brass);}
-
-.profile-header{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  margin-bottom:20px;
-}
-.profile-avatar{
-  width:52px;
-  height:52px;
-  font-size:16px;
-  border:2px solid var(--line);
-  flex-shrink:0;
-}
-.profile-name{margin:0 0 4px; display:flex; align-items:center;}
-.profile-today{
-  background:var(--surface-2);
-  border-radius:12px;
-  padding:14px 16px;
-  margin-bottom:16px;
-  text-align:center;
-}
-.profile-today-num{
-  font-family:'Anton',sans-serif;
-  font-size:40px;
-  line-height:1;
-  color:var(--chalk);
-}
-.profile-today-label{
-  font-family:'Space Mono',monospace;
-  font-size:11px;
-  color:var(--chalk-soft);
-  margin-top:2px;
-}
-.profile-stat-row{
-  display:grid;
-  grid-template-columns:repeat(2, 1fr);
-  gap:10px;
-  margin-bottom:22px;
-}
-.profile-stat{
-  background:var(--surface-2);
-  border-radius:10px;
-  padding:10px 12px;
-  text-align:center;
-}
-.profile-stat-num{
-  display:block;
-  font-family:'Space Mono',monospace;
-  font-weight:700;
-  font-size:18px;
-  color:var(--brass);
-}
-.profile-stat-label{
-  font-family:'Space Mono',monospace;
-  font-size:10px;
-  color:var(--chalk-soft);
-}
-.profile-chart-label{
-  font-family:'Space Mono',monospace;
-  font-size:11px;
-  color:var(--chalk-soft);
-  text-transform:uppercase;
-  letter-spacing:.05em;
-  margin-bottom:10px;
-}
-
-.error-banner{
-  background:rgba(225,90,62,0.12);
-  border:1px solid var(--effort);
-  color:#F0B3A4;
-  padding:12px 14px;
-  border-radius:10px;
-  font-size:13px;
-  margin-bottom:18px;
-}
-.loading-line{
-  font-family:'Space Mono',monospace;
-  font-size:13px;
-  color:var(--chalk-soft);
-}
-
-@media (max-width:480px){
-  h1.brand{font-size:26px;}
-  .big-num{font-size:40px;}
-  .card{padding:22px 18px;}
-  .stat-grid{grid-template-columns:1fr;}
-}
+  @media (max-width:380px){
+    .phone{ width:300px; height:620px; }
+  }
 </style>
 </head>
 <body>
-<div id="app"><p class="loading-line">Carregando...</p></div>
 
-<!-- Firebase SDK (compat, funciona direto via CDN sem precisar de build) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<div class="stage">
+  <div class="stage-label"><span class="dot"></span>WARDEN — CONCEPT PREVIEW</div>
+
+  <div class="tabs" role="tablist" aria-label="Preview screens">
+    <button class="active" data-screen="home">Today</button>
+    <button data-screen="locked">Locked</button>
+    <button data-screen="earned">Earned freedom</button>
+  </div>
+
+  <div class="phone">
+    <div class="notch"></div>
+
+    <!-- SCREEN 1: HOME / TODAY -->
+    <div class="screen active" id="screen-home">
+      <div class="top-row">
+        <div class="brand-mark">
+          <svg class="eye-badge" viewBox="0 0 160 160" aria-hidden="true"><path d="M28 80 A60 60 0 0 1 132 80 A60 60 0 0 1 28 80 Z" fill="#F3EDE2"/><circle cx="80" cy="80" r="14" fill="#1F2A44"/><circle cx="80" cy="80" r="5" fill="#E0A458"/></svg>
+          Warden
+        </div>
+        <span class="pill standard">Standard</span>
+      </div>
+
+      <div class="greeting">Tuesday, September 29</div>
+      <div class="headline">You're within your limits today</div>
+
+      <div class="ring-wrap">
+        <div class="ring">
+          <div class="ring-inner">
+            <div class="num">1h 42m</div>
+            <div class="cap">of 2h 15m used</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">MONITORED APPS</div>
+      <div class="app-row">
+        <div class="app-icon" style="background:#E1306C33; color:#E1306C;">IG</div>
+        <div class="app-meta">
+          <div class="app-name">Instagram</div>
+          <div class="app-time">52 min today</div>
+        </div>
+        <div class="app-status status-ok">On track</div>
+      </div>
+      <div class="app-row">
+        <div class="app-icon" style="background:#00000033; color:#F3EDE2;">TT</div>
+        <div class="app-meta">
+          <div class="app-name">TikTok</div>
+          <div class="app-time">38 min today</div>
+        </div>
+        <div class="app-status status-ok">On track</div>
+      </div>
+      <div class="app-row">
+        <div class="app-icon" style="background:#E0A45833; color:#E0A458;">X</div>
+        <div class="app-meta">
+          <div class="app-name">X</div>
+          <div class="app-time">12 min — 3 reopens</div>
+        </div>
+        <div class="app-status status-watch">Watching</div>
+      </div>
+    </div>
+
+    <!-- SCREEN 2: LOCKED (STRICT) -->
+    <div class="screen lock-screen" id="screen-locked">
+      <span class="pill strict" style="margin-bottom:20px;">Strict mode</span>
+      <div class="lock-icon">
+        <svg width="34" height="34" viewBox="0 0 160 160" aria-hidden="true"><path d="M28 80 A60 60 0 0 1 132 80 A60 60 0 0 1 28 80 Z" fill="none" stroke="#E0A458" stroke-width="8"/><circle cx="80" cy="80" r="10" fill="#E0A458"/></svg>
+      </div>
+      <div class="lock-title">X is locked for now</div>
+      <div class="lock-body">You've tried to reopen this app 5 times in the last hour. Warden tightens the lock when it notices a pattern like this.</div>
+
+      <div class="lock-stat">
+        <span class="k">Reopen attempts today</span>
+        <span class="v">5</span>
+      </div>
+      <div class="lock-stat">
+        <span class="k">Lock lifts in</span>
+        <span class="v">2h 10m</span>
+      </div>
+
+      <div class="fake-btn disabled">Request 5 more minutes</div>
+    </div>
+
+    <!-- SCREEN 3: EARNED FREEDOM -->
+    <div class="screen earn-screen" id="screen-earned">
+      <span class="pill flexible" style="margin-bottom:20px;">Flexible mode</span>
+      <div class="earn-icon">
+        <svg width="34" height="34" viewBox="0 0 160 160" aria-hidden="true"><path d="M296 100 C308 158 324 158 340 116 C356 158 372 158 382 100" transform="translate(-260,-60) scale(0.9)" fill="none" stroke="#DDE6DF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><circle cx="34" cy="6" r="6" fill="#E0A458" transform="translate(46,30)"/></svg>
+      </div>
+      <div class="earn-title">You've earned more freedom</div>
+      <div class="earn-body">9 days without a single bypass attempt. Warden is loosening your limits — you can override once per day if you really need to.</div>
+
+      <div class="level-track">
+        <div class="level-row">
+          <span class="level-name">Strict</span>
+          <div class="level-bar-bg"><div class="level-bar-fill" style="width:100%; background:rgba(243,237,226,0.15);"></div></div>
+        </div>
+        <div class="level-row">
+          <span class="level-name">Standard</span>
+          <div class="level-bar-bg"><div class="level-bar-fill" style="width:100%; background:rgba(243,237,226,0.25);"></div></div>
+        </div>
+        <div class="level-row">
+          <span class="level-name">Flexible</span>
+          <div class="level-bar-bg"><div class="level-bar-fill" style="width:78%; background:#E0A458;"></div></div>
+        </div>
+      </div>
+
+      <div class="streak-card">
+        <div class="k">CURRENT STREAK</div>
+        <div class="v">9 days clean</div>
+        <div class="sub">↑ Trust level rising</div>
+      </div>
+    </div>
+
+    <div class="watermark">CONCEPT PREVIEW · NOT A LIVE APP YET</div>
+  </div>
+</div>
 
 <script>
-/* =========================================================
-   CONFIGURAÇÃO DO FIREBASE
-   Substitua os valores abaixo pelos que o Firebase te deu
-   em Configurações do projeto > Seus apps > SDK config.
-   ========================================================= */
-const firebaseConfig = {
-  apiKey: "AIzaSyDISbI3WXDP_7eUgN_HXMvBQHxZ0W7o1u8",
-  authDomain: "flexoes-dos-primos.firebaseapp.com",
-  projectId: "flexoes-dos-primos",
-  storageBucket: "flexoes-dos-primos.firebasestorage.app",
-  messagingSenderId: "1032783816954",
-  appId: "1:1032783816954:web:4d352abed0eab8b5b38143"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const DOC_CONFIG = db.collection('flexoesDosPrimos').doc('config');
-const DOC_ENTRIES = db.collection('flexoesDosPrimos').doc('entries');
-const COL_MURAL = db.collection('flexoesDosPrimosMural');
-const FieldValue = firebase.firestore.FieldValue;
-
-let state = {
-  loading: true,
-  error: null,
-  config: null,
-  entries: {},
-  myId: localStorage.getItem('flexoes_myId') || null,
-  settingsOpen: false,
-  confirmReset: false,
-  lastDelta: {},
-  activeTab: 'hoje',
-  setupNames: ['', '', 'Jota', 'Marco', 'Du'],
-  backdateOpen: false,
-  backdateDate: '',
-  backdateAmount: '',
-  searchToday: '',
-  searchRanking: '',
-  hasCheckedCelebration: false,
-  celebrationOpen: false,
-  celebrationTotal: 0,
-  celebrationTied: false,
-  profileId: null,
-  topChartView: 'you',
-  detailChartOpen: false,
-  detailChartKind: null,
-  muralMessages: [],
-  muralComposerText: '',
-  muralComposerImage: null,
-  muralSending: false,
-  pokeTarget: null,
-  pokePickerOpen: false,
-  pokeText: '',
-  pokeSending: false,
-};
-
-const PLAYER_COLORS = ['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c1)','var(--c2)','var(--c3)'];
-const CHART_COLORS = ['#FF3B30','#4A6478','#C1673F','#8C97A6','#D9A441','#FF3B30','#4A6478','#C1673F'];
-
-const WEEKDAYS = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
-const MONTHS = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-
-function todayKey(d){
-  d = d || new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth()+1).padStart(2,'0');
-  const day = String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${day}`;
-}
-function formatDateLong(d){
-  return `${WEEKDAYS[d.getDay()]}, ${d.getDate()} de ${MONTHS[d.getMonth()]}`;
-}
-function formatDateShort(d){
-  return `${d.getDate()}/${String(d.getMonth()+1).padStart(2,'0')}`;
-}
-
-/* ============== FIREBASE: leitura em tempo real ============== */
-
-function startListeners(){
-  DOC_CONFIG.onSnapshot(
-    (doc) => {
-      state.config = doc.exists ? doc.data() : null;
-      state.loading = false;
-      if(state.myId && state.config && !state.config.players.find(p=>p.id===state.myId)){
-        state.myId = null;
-        localStorage.removeItem('flexoes_myId');
-      }
-      state.error = null;
-      render();
-    },
-    (err) => {
-      state.error = 'Não consegui conectar ao Firebase. Confere se o firebaseConfig está certo.';
-      state.loading = false;
-      render();
-    }
-  );
-
-  DOC_ENTRIES.onSnapshot(
-    (doc) => {
-      state.entries = (doc.exists && doc.data().days) ? doc.data().days : {};
-      render();
-    },
-    (err) => {
-      state.error = 'Não consegui carregar os registros. Confere sua conexão.';
-      render();
-    }
-  );
-
-  COL_MURAL.orderBy('createdAt', 'desc').limit(60).onSnapshot(
-    (snap) => {
-      state.muralMessages = snap.docs.map(d => ({id: d.id, ...d.data()}));
-      render();
-    },
-    (err) => {
-      state.muralMessages = [];
-      render();
-    }
-  );
-}
-
-async function saveConfig(cfg){
-  try{
-    await DOC_CONFIG.set(cfg);
-    state.error = null;
-  }catch(e){
-    state.error = 'Não deu pra salvar a configuração. Tenta de novo.';
-    render();
-  }
-}
-
-function saveIdentity(playerId){
-  localStorage.setItem('flexoes_myId', playerId);
-  state.myId = playerId;
-  render();
-}
-
-function playerColor(playerId){
-  const idx = state.config.players.findIndex(p=>p.id===playerId);
-  return PLAYER_COLORS[idx % PLAYER_COLORS.length];
-}
-function playerChartColor(idx){
-  return CHART_COLORS[idx % CHART_COLORS.length];
-}
-function playerName(playerId){
-  const p = state.config.players.find(p=>p.id===playerId);
-  return p ? p.name : '?';
-}
-
-function getCount(dateKey, playerId){
-  return (state.entries[dateKey] && state.entries[dateKey][playerId]) || 0;
-}
-
-async function addReps(playerId, amount, dateKey){
-  const key = dateKey || todayKey();
-  if(!dateKey){ state.lastDelta[playerId] = amount; }
-  try{
-    await DOC_ENTRIES.set({
-      days: { [key]: { [playerId]: FieldValue.increment(amount) } }
-    }, { merge: true });
-    state.error = null;
-  }catch(e){
-    state.error = 'Não deu pra salvar o registro. Confere sua conexão e tenta de novo.';
-    render();
-  }
-}
-
-async function completeGoal(playerId){
-  const key = todayKey();
-  const current = getCount(key, playerId);
-  if(current < 100){
-    await addReps(playerId, 100 - current);
-  }
-}
-
-async function undoLast(playerId){
-  const delta = state.lastDelta[playerId];
-  if(!delta) return;
-  await addReps(playerId, -delta);
-  state.lastDelta[playerId] = null;
-}
-
-async function customAdd(playerId){
-  const input = document.getElementById('custom-input-'+playerId);
-  const val = parseInt(input.value, 10);
-  if(!isNaN(val) && val !== 0){
-    await addReps(playerId, val);
-  }
-  if(input) input.value = '';
-}
-
-function openBackdate(){
-  const d = new Date();
-  d.setDate(d.getDate()-1);
-  state.backdateDate = todayKey(d);
-  state.backdateAmount = '';
-  state.error = null;
-  state.backdateOpen = true;
-  render();
-}
-function closeBackdate(){
-  state.backdateOpen = false;
-  state.error = null;
-  render();
-}
-function closeModalIfOverlayBackdate(e){
-  if(e.target.classList.contains('modal-overlay')) closeBackdate();
-}
-async function submitBackdate(){
-  const dateInput = document.getElementById('backdate-date');
-  const amountInput = document.getElementById('backdate-amount');
-  const dateVal = dateInput ? dateInput.value : '';
-  const amount = parseInt(amountInput ? amountInput.value : '', 10);
-  const todayStr = todayKey();
-
-  if(!dateVal){
-    state.error = 'Escolhe uma data.';
-    render();
-    return;
-  }
-  if(dateVal > todayStr){
-    state.error = 'Não dá pra registrar num dia futuro.';
-    render();
-    return;
-  }
-  if(isNaN(amount) || amount === 0){
-    state.error = 'Coloca uma quantidade válida.';
-    render();
-    return;
-  }
-
-  await addReps(state.myId, amount, dateVal);
-  state.backdateOpen = false;
-  state.error = null;
-  render();
-}
-
-function computeStreak(playerId){
-  let streak = 0;
-  let d = new Date();
-  if(getCount(todayKey(d), playerId) >= 100){ streak++; }
-  d.setDate(d.getDate()-1);
-  while(true){
-    const k = todayKey(d);
-    if(getCount(k, playerId) >= 100){
-      streak++;
-      d.setDate(d.getDate()-1);
-    } else break;
-  }
-  return streak;
-}
-
-function computeAllTimeStats(playerId){
-  const keys = Object.keys(state.entries);
-  if(keys.length === 0) return {total:0, daysHit:0, bestStreak:0};
-  const sorted = keys.slice().sort();
-  const [y,m,d] = sorted[0].split('-').map(Number);
-  let cursor = new Date(y, m-1, d);
-  const end = new Date();
-  let total=0, daysHit=0, bestStreak=0, currentRun=0;
-  let safety = 0;
-  while(cursor <= end && safety < 3660){
-    const k = todayKey(cursor);
-    const c = getCount(k, playerId);
-    total += c;
-    if(c >= 100){ daysHit++; currentRun++; bestStreak = Math.max(bestStreak, currentRun); }
-    else { currentRun = 0; }
-    cursor.setDate(cursor.getDate()+1);
-    safety++;
-  }
-  return {total, daysHit, bestStreak};
-}
-
-function initials(name){
-  const parts = String(name).trim().split(/\s+/).filter(Boolean);
-  if(parts.length === 0) return '?';
-  if(parts.length === 1) return parts[0].slice(0,2).toUpperCase();
-  return (parts[0][0]+parts[parts.length-1][0]).toUpperCase();
-}
-
-function computeGroupDailyTotal(dateKey){
-  return state.config.players.reduce((sum,p)=> sum + getCount(dateKey, p.id), 0);
-}
-
-function computeGroupAllTimeTotal(){
-  return state.config.players.reduce((sum,p)=> sum + computeAllTimeStats(p.id).total, 0);
-}
-
-function lastNDaysAscending(n){
-  const days = [];
-  let d = new Date();
-  for(let i=0;i<n;i++){
-    days.push(new Date(d));
-    d.setDate(d.getDate()-1);
-  }
-  return days.reverse();
-}
-
-function switchTab(tab){
-  state.activeTab = tab;
-  render();
-}
-
-function switchTopChartView(view){
-  state.topChartView = view;
-  render();
-}
-
-function tallyMarkup(count){
-  const groupsFull = Math.floor(Math.min(count,100)/5);
-  const remainder = Math.min(count,100) % 5;
-  const totalGoalGroups = 20;
-  const bonus = Math.max(0, count - 100);
-  const bonusGroupsFull = Math.floor(bonus/5);
-  const bonusRemainder = bonus % 5;
-
-  let html = '';
-  for(let g=0; g<groupsFull; g++) html += tallyGroup(5, false, false);
-  if(remainder > 0) html += tallyGroup(remainder, false, false);
-  const drawn = groupsFull + (remainder>0?1:0);
-  for(let g=drawn; g<totalGoalGroups; g++) html += tallyGroup(5, true, false);
-  for(let g=0; g<bonusGroupsFull; g++) html += tallyGroup(5, false, true);
-  if(bonusRemainder > 0) html += tallyGroup(bonusRemainder, false, true);
-  return html;
-}
-function tallyGroup(barCount, empty, bonus){
-  let bars = '';
-  const total = empty ? 5 : barCount;
-  for(let i=0;i<total;i++){
-    bars += empty ? `<div class="tally-bar empty"></div>` : `<div class="tally-bar${bonus?' bonus':''}"></div>`;
-  }
-  let slash = '';
-  if(!empty && barCount === 5){
-    slash = `<div class="tally-slash${bonus?' bonus':''}"></div>`;
-  }
-  return `<div class="tally-group">${bars}${slash}</div>`;
-}
-
-/* ================= RENDER ================= */
-
-function render(){
-  const app = document.getElementById('app');
-  if(state.loading){
-    app.innerHTML = `<p class="loading-line">Carregando o desafio...</p>`;
-    return;
-  }
-  if(!state.config){
-    app.innerHTML = renderSetup();
-    return;
-  }
-  if(!state.myId){
-    app.innerHTML = renderIdentity();
-    return;
-  }
-  checkCelebration();
-  app.innerHTML = renderMain();
-  requestAnimationFrame(scrollChartsToEnd);
-}
-
-function scrollChartsToEnd(){
-  document.querySelectorAll('.chart-scroll:not(.no-autoscroll)').forEach(el=>{
-    el.scrollLeft = el.scrollWidth;
-  });
-}
-
-function computeYesterdayChampions(){
-  const d = new Date();
-  d.setDate(d.getDate()-1);
-  const yKey = todayKey(d);
-  let max = 0;
-  state.config.players.forEach(p=>{
-    const c = getCount(yKey, p.id);
-    if(c > max) max = c;
-  });
-  if(max === 0) return [];
-  return state.config.players.filter(p => getCount(yKey, p.id) === max).map(p => p.id);
-}
-
-function checkCelebration(){
-  if(state.hasCheckedCelebration) return;
-  state.hasCheckedCelebration = true;
-
-  const champs = computeYesterdayChampions();
-  if(!champs.includes(state.myId)) return;
-
-  const d = new Date();
-  d.setDate(d.getDate()-1);
-  const yKey = todayKey(d);
-  const flagKey = 'flexoes_celebrated_'+yKey;
-
-  try{
-    if(localStorage.getItem(flagKey)) return;
-    localStorage.setItem(flagKey, '1');
-  }catch(e){
-    return;
-  }
-
-  state.celebrationOpen = true;
-  state.celebrationTotal = getCount(yKey, state.myId);
-  state.celebrationTied = champs.length > 1;
-}
-
-function closeCelebration(){
-  state.celebrationOpen = false;
-  render();
-}
-
-function renderCelebrationModal(){
-  return `
-    <div class="modal-overlay" onclick="closeCelebrationIfOverlay(event)">
-      <div class="modal celebration-modal">
-        <div class="celebration-emoji">👑</div>
-        <h3>Você foi o General de ontem!</h3>
-        <p class="tagline" style="margin-bottom:4px;">
-          ${state.celebrationTied
-            ? `Você empatou em ${state.celebrationTotal} flexões, o maior número de ontem.`
-            : `Foram ${state.celebrationTotal} flexões — mais que qualquer outro primo ontem.`
-          }
-        </p>
-        <p class="tagline" style="margin-bottom:20px;">Bora manter esse ritmo hoje?</p>
-        <button class="btn btn-primary btn-block" onclick="closeCelebration()">Bora hoje também</button>
-      </div>
-    </div>
-  `;
-}
-function closeCelebrationIfOverlay(e){
-  if(e.target.classList.contains('modal-overlay')) closeCelebration();
-}
-
-function openProfile(playerId){
-  state.profileId = playerId;
-  render();
-}
-function closeProfile(){
-  state.profileId = null;
-  render();
-}
-function closeProfileIfOverlay(e){
-  if(e.target.classList.contains('modal-overlay')) closeProfile();
-}
-
-function openChartDetail(kind){
-  state.detailChartOpen = true;
-  state.detailChartKind = kind;
-  render();
-}
-function closeChartDetail(){
-  state.detailChartOpen = false;
-  render();
-}
-function closeChartDetailIfOverlay(e){
-  if(e.target.classList.contains('modal-overlay')) closeChartDetail();
-}
-
-function resizeImageFile(file, maxDim, quality){
-  return new Promise((resolve, reject)=>{
-    if(!file.type || !file.type.startsWith('image/')){
-      reject(new Error('not an image'));
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (e)=>{
-      const img = new Image();
-      img.onload = ()=>{
-        let w = img.width, h = img.height;
-        if(w > h && w > maxDim){ h = Math.round(h*maxDim/w); w = maxDim; }
-        else if(h >= w && h > maxDim){ w = Math.round(w*maxDim/h); h = maxDim; }
-        const canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL('image/jpeg', quality));
-      };
-      img.onerror = () => reject(new Error('bad image'));
-      img.src = e.target.result;
-    };
-    reader.onerror = () => reject(new Error('read error'));
-    reader.readAsDataURL(file);
-  });
-}
-
-async function onComposerImageSelected(input){
-  const file = input.files && input.files[0];
-  if(!file) return;
-  try{
-    const dataUrl = await resizeImageFile(file, 900, 0.62);
-    state.muralComposerImage = dataUrl;
-    state.error = null;
-  }catch(e){
-    state.error = 'Não deu pra usar essa imagem. Tenta outra.';
-  }
-  render();
-}
-function removeComposerImage(){
-  state.muralComposerImage = null;
-  render();
-}
-
-async function sendMuralPost(){
-  const text = state.muralComposerText.trim();
-  const image = state.muralComposerImage;
-  if(!text && !image){
-    state.error = 'Escreve algo ou anexa uma imagem antes de postar.';
-    render();
-    return;
-  }
-  state.muralSending = true;
-  render();
-  try{
-    await COL_MURAL.add({
-      authorId: state.myId,
-      text: text,
-      image: image || null,
-      targetId: null,
-      createdAt: FieldValue.serverTimestamp(),
+  const buttons = document.querySelectorAll('.tabs button');
+  const screens = {
+    home: document.getElementById('screen-home'),
+    locked: document.getElementById('screen-locked'),
+    earned: document.getElementById('screen-earned'),
+  };
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      Object.values(screens).forEach(s => s.classList.remove('active'));
+      screens[btn.dataset.screen].classList.add('active');
     });
-    state.muralComposerText = '';
-    state.muralComposerImage = null;
-    state.error = null;
-  }catch(e){
-    state.error = 'Não deu pra postar. Confere sua conexão e tenta de novo.';
-  }
-  state.muralSending = false;
-  render();
-}
-
-function openPokePicker(){
-  state.pokePickerOpen = true;
-  state.error = null;
-  render();
-}
-function closePokePicker(){
-  state.pokePickerOpen = false;
-  render();
-}
-function closePokePickerIfOverlay(e){
-  if(e.target.classList.contains('modal-overlay')) closePokePicker();
-}
-function pickPokeTarget(playerId){
-  state.pokePickerOpen = false;
-  openPoke(playerId);
-}
-
-function openPoke(playerId){
-  state.pokeTarget = playerId;
-  state.pokeText = '';
-  state.error = null;
-  render();
-}
-function closePoke(){
-  state.pokeTarget = null;
-  render();
-}
-function closePokeIfOverlay(e){
-  if(e.target.classList.contains('modal-overlay')) closePoke();
-}
-async function sendPoke(){
-  const input = document.getElementById('poke-text-input');
-  const text = input ? input.value.trim() : '';
-  if(!text){
-    state.error = 'Escreve o que você quer mandar.';
-    render();
-    return;
-  }
-  state.pokeSending = true;
-  render();
-  try{
-    await COL_MURAL.add({
-      authorId: state.myId,
-      text: text,
-      image: null,
-      targetId: state.pokeTarget,
-      createdAt: FieldValue.serverTimestamp(),
-    });
-    state.pokeTarget = null;
-    state.error = null;
-  }catch(e){
-    state.error = 'Não deu pra mandar. Confere sua conexão e tenta de novo.';
-  }
-  state.pokeSending = false;
-  render();
-}
-
-function formatMsgTime(m){
-  if(!m.createdAt || !m.createdAt.toDate) return 'agora';
-  const d = m.createdAt.toDate();
-  const now = new Date();
-  const diffMin = Math.round((now - d) / 60000);
-  if(diffMin < 1) return 'agora';
-  if(diffMin < 60) return `há ${diffMin}min`;
-  const diffH = Math.round(diffMin/60);
-  if(diffH < 24) return `há ${diffH}h`;
-  return `${d.getDate()}/${String(d.getMonth()+1).padStart(2,'0')}`;
-}
-
-function renderChartDetailModal(){
-  const kind = state.detailChartKind;
-  const n = state.config.players.length;
-  const DAYS = 30;
-  let title = '';
-  let subtitle = '';
-  let legend = '';
-  let chart = '';
-
-  if(kind === 'you'){
-    title = escapeHtml(playerName(state.myId));
-    subtitle = `últimos ${DAYS} dias · suas flexões`;
-    legend = `<span class="legend-item"><span class="legend-dot" style="background:var(--effort);"></span>flexões</span><span class="legend-item"><span class="legend-dash"></span>meta (100)</span>`;
-    chart = renderLineChart(dateKey => getCount(dateKey, state.myId), 100, 'var(--effort)', DAYS);
-  } else if(kind === 'group'){
-    title = 'Grupo';
-    subtitle = `últimos ${DAYS} dias · total combinado de ${n} pessoa${n===1?'':'s'}`;
-    legend = `<span class="legend-item"><span class="legend-dot" style="background:var(--brass);"></span>total do grupo</span><span class="legend-item"><span class="legend-dash"></span>meta do grupo (${n*100})</span>`;
-    chart = renderLineChart(dateKey => computeGroupDailyTotal(dateKey), n*100, 'var(--brass)', DAYS);
-  } else if(kind === 'all'){
-    title = 'Todos';
-    subtitle = `últimos ${DAYS} dias · cada barra é uma pessoa`;
-    legend = state.config.players.map((p,i)=>`<span class="legend-item"><span class="legend-dot" style="background:${playerChartColor(i)}"></span>${escapeHtml(p.name)}</span>`).join('');
-    chart = renderMultiPlayerChart(DAYS);
-  } else if(kind === 'profile'){
-    const pid = state.profileId;
-    const color = playerColor(pid);
-    title = escapeHtml(playerName(pid));
-    subtitle = `últimos ${DAYS} dias`;
-    legend = `<span class="legend-item"><span class="legend-dot" style="background:${color};"></span>flexões</span><span class="legend-item"><span class="legend-dash"></span>meta (100)</span>`;
-    chart = renderLineChart(dateKey => getCount(dateKey, pid), 100, color, DAYS);
-  }
-
-  const chartHtml = (kind === 'all') ? `<div class="chart-scroll">${chart}</div>` : chart;
-
-  return `
-    <div class="modal-overlay" onclick="closeChartDetailIfOverlay(event)">
-      <div class="modal detail-modal">
-        <h3>${title}</h3>
-        <p class="tagline" style="margin-bottom:16px;">${subtitle}</p>
-        <div class="legend">${legend}</div>
-        ${chartHtml}
-        <div class="modal-actions">
-          <button class="btn btn-ghost" onclick="closeChartDetail()">Fechar</button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderProfileModal(){
-  const pid = state.profileId;
-  const name = playerName(pid);
-  const todayStr = todayKey();
-  const todayCount = getCount(todayStr, pid);
-  const stats = computeAllTimeStats(pid);
-  const streak = computeStreak(pid);
-  const isChamp = computeYesterdayChampions().includes(pid);
-  const color = playerColor(pid);
-  const isMe = pid === state.myId;
-
-  return `
-    <div class="modal-overlay" onclick="closeProfileIfOverlay(event)">
-      <div class="modal profile-modal">
-        <div class="profile-header">
-          <div class="avatar-chip profile-avatar" style="border-color:${color};">${initials(name)}</div>
-          <div>
-            <h3 class="profile-name">${escapeHtml(name)}${isMe ? '<span class="you-tag" style="margin-left:6px;">você</span>' : ''}</h3>
-            ${isChamp ? `<div class="champ-badge-sm">👑 campeão do dia anterior</div>` : ''}
-          </div>
-        </div>
-
-        <div class="profile-today">
-          <div class="profile-today-num">${todayCount}</div>
-          <div class="profile-today-label">flexões hoje · de 100${todayCount>=100 ? ' · meta batida 🔥' : ''}</div>
-        </div>
-
-        <div class="profile-stat-row">
-          <div class="profile-stat"><span class="profile-stat-num">${stats.total}</span><span class="profile-stat-label">total</span></div>
-          <div class="profile-stat"><span class="profile-stat-num">${stats.daysHit}</span><span class="profile-stat-label">dias na meta</span></div>
-          <div class="profile-stat"><span class="profile-stat-num">${streak}</span><span class="profile-stat-label">sequência atual</span></div>
-          <div class="profile-stat"><span class="profile-stat-num">${stats.bestStreak}</span><span class="profile-stat-label">melhor sequência</span></div>
-        </div>
-
-        <div class="profile-chart-label">Últimos 14 dias</div>
-        <p class="chart-hint">Toca no gráfico pra ver mais detalhes.</p>
-        <div class="chart-scroll chart-clickable" onclick="openChartDetail('profile')">${renderSingleSeriesChart(dateKey => getCount(dateKey, pid), 100, color)}</div>
-
-        <div class="modal-actions">
-          <button class="btn btn-ghost" onclick="closeProfile()">Fechar</button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderSetup(){
-  const rows = state.setupNames.map((n,i)=>`
-    <div class="setup-player-row">
-      <input type="text" id="setup-name-${i}" placeholder="Nome da pessoa ${i+1}" value="${escapeAttr(n)}" oninput="state.setupNames[${i}]=this.value">
-      ${state.setupNames.length > 2 ? `<button class="remove-player" onclick="removeSetupRow(${i})" aria-label="Remover">×</button>` : ''}
-    </div>
-  `).join('');
-
-  return `
-    <div class="center-screen">
-      <div class="setup-box card">
-        <div class="eyebrow">passo 1 de 1</div>
-        <h1 class="brand">Cria o desafio</h1>
-        <p class="tagline" style="margin-bottom:20px;">Coloca o nome de todo mundo que vai participar.</p>
-        ${rows}
-        <button class="btn btn-ghost" onclick="addSetupRow()">+ adicionar pessoa</button>
-        ${state.error ? `<div class="error-banner" style="margin-top:12px;">${state.error}</div>` : ''}
-        <button class="btn btn-primary btn-block" style="margin-top:14px;" onclick="createChallenge()">Criar desafio</button>
-      </div>
-    </div>
-  `;
-}
-
-function addSetupRow(){
-  state.setupNames.push('');
-  render();
-}
-function removeSetupRow(i){
-  state.setupNames.splice(i,1);
-  render();
-}
-async function createChallenge(){
-  const names = state.setupNames.map(n=>n.trim()).filter(n=>n.length>0);
-  if(names.length < 2){
-    state.error = 'Coloca pelo menos 2 nomes pra ter desafio.';
-    render();
-    return;
-  }
-  const players = names.map((n,i)=>({id:'p'+(i+1), name:n}));
-  await saveConfig({players});
-}
-
-function renderIdentity(){
-  const btns = state.config.players.map(p=>
-    `<button class="choice-btn" onclick="saveIdentity('${p.id}')">${escapeHtml(p.name)}</button>`
-  ).join('');
-  return `
-    <div class="center-screen">
-      <div class="setup-box card">
-        <div class="eyebrow">último passo</div>
-        <h1 class="brand">Quem é você?</h1>
-        <p class="tagline">Escolhe seu nome pra gente saber de quem são as flexões.</p>
-        <div class="choice-row">${btns}</div>
-        ${state.error ? `<div class="error-banner" style="margin-top:16px;">${state.error}</div>` : ''}
-      </div>
-    </div>
-  `;
-}
-
-function renderMain(){
-  const now = new Date();
-  return `
-    <div class="topbar">
-      <div>
-        <div class="eyebrow">desafio 100 por dia</div>
-        <h1 class="brand">Desafio dos Primos</h1>
-      </div>
-      <button class="gear" onclick="toggleSettings()" aria-label="Configurações">⚙</button>
-    </div>
-    <div class="date-line">${formatDateLong(now)}</div>
-
-    ${state.error ? `<div class="error-banner">${state.error}</div>` : ''}
-
-    <div class="tabs">
-      <button class="tab-btn${state.activeTab==='hoje'?' active':''}" onclick="switchTab('hoje')">Hoje</button>
-      <button class="tab-btn${state.activeTab==='ranking'?' active':''}" onclick="switchTab('ranking')">Ranking</button>
-      <button class="tab-btn${state.activeTab==='progresso'?' active':''}" onclick="switchTab('progresso')">Progresso</button>
-      <button class="tab-btn${state.activeTab==='mural'?' active':''}" onclick="switchTab('mural')">Chat</button>
-    </div>
-
-    ${state.activeTab === 'hoje' ? renderTodayTab() : state.activeTab === 'ranking' ? renderRankingTab() : state.activeTab === 'progresso' ? renderProgressTab() : renderMuralTab()}
-
-    ${state.settingsOpen ? renderSettingsModal() : ''}
-    ${state.backdateOpen ? renderBackdateModal() : ''}
-    ${state.celebrationOpen ? renderCelebrationModal() : ''}
-    ${state.profileId ? renderProfileModal() : ''}
-    ${state.detailChartOpen ? renderChartDetailModal() : ''}
-    ${state.pokeTarget ? renderPokeModal() : ''}
-    ${state.pokePickerOpen ? renderPokePickerModal() : ''}
-  `;
-}
-
-function renderTodayTab(){
-  return `
-    ${renderMyBoard(state.myId)}
-    <div class="history">
-      <h2>O time hoje</h2>
-      <div class="roster-search">
-        <input type="text" id="roster-search-input" placeholder="Buscar pessoa..." value="${escapeAttr(state.searchToday)}" oninput="state.searchToday=this.value; updateRosterList();">
-      </div>
-      <div class="roster-list" id="roster-list">${buildRosterRows()}</div>
-    </div>
-  `;
-}
-
-function buildRosterRows(){
-  const others = state.config.players.filter(p=>p.id!==state.myId);
-  const todayStr = todayKey();
-  const q = state.searchToday.trim().toLowerCase();
-  const champs = computeYesterdayChampions();
-
-  let list = others.map(p=>({
-    ...p,
-    count: getCount(todayStr, p.id),
-    streak: computeStreak(p.id),
-    isChamp: champs.includes(p.id),
-  }));
-  if(q) list = list.filter(p => p.name.toLowerCase().includes(q));
-  list.sort((a,b) => {
-    if(a.isChamp !== b.isChamp) return b.isChamp - a.isChamp;
-    return b.count - a.count || a.name.localeCompare(b.name);
   });
-
-  if(list.length === 0){
-    return `<p class="empty-note">${q ? 'Ninguém com esse nome.' : 'Só você no desafio por enquanto.'}</p>`;
-  }
-
-  return list.map(p=>{
-    const hit = p.count >= 100;
-    const pct = Math.min(100, p.count);
-    return `
-      <div class="roster-row${hit?' hit':''}${p.isChamp?' champ':''}">
-        <div class="avatar-chip">${initials(p.name)}</div>
-        <div class="roster-mid clickable-name" onclick="openProfile('${p.id}')">
-          <div class="roster-name">${escapeHtml(p.name)}</div>
-          ${p.isChamp ? `<div class="champ-badge-sm">👑 campeão do dia anterior</div>` : ''}
-          <div class="roster-bar-track"><div class="roster-bar-fill" style="width:${pct}%; background:${hit?'var(--brass)':'var(--effort)'};"></div></div>
-        </div>
-        <div class="roster-count">${p.count}${p.streak>0?`<span class="roster-streak">🔥${p.streak}</span>`:''}</div>
-      </div>
-    `;
-  }).join('');
-}
-
-function updateRosterList(){
-  const el = document.getElementById('roster-list');
-  if(el) el.innerHTML = buildRosterRows();
-}
-
-function renderMyBoard(playerId){
-  const todayStr = todayKey();
-  const count = getCount(todayStr, playerId);
-  const hit = count >= 100;
-  const streak = computeStreak(playerId);
-  const bonus = Math.max(0, count-100);
-  const isChamp = computeYesterdayChampions().includes(playerId);
-
-  return `
-    <div class="board${hit?' hit':''}">
-      <div class="board-header">
-        <div class="board-name clickable-name" onclick="openProfile('${playerId}')">
-          <span class="avatar-chip" style="margin-right:9px;">${initials(playerName(playerId))}</span>${escapeHtml(playerName(playerId))}<span class="you-tag">você</span>
-        </div>
-        ${streak > 0 ? `<div class="streak-tag">🔥 ${streak} dia${streak>1?'s':''}</div>` : ''}
-      </div>
-      ${isChamp ? `<div class="champ-badge">👑 campeão de ontem</div>` : ''}
-      <div class="big-num">${count}</div>
-      <div class="big-num-suffix">de 100 hoje</div>
-      ${bonus > 0 ? `<div class="bonus-note">+${bonus} além da meta</div>` : ''}
-      <div class="tally-wrap">${tallyMarkup(count)}</div>
-      <div class="week-strip">${renderWeekStrip(playerId)}</div>
-      <div class="quick-add">
-        <button class="btn btn-outline" onclick="addReps('${playerId}',5)">+5</button>
-        <button class="btn btn-outline" onclick="addReps('${playerId}',10)">+10</button>
-        <button class="btn btn-outline" onclick="addReps('${playerId}',25)">+25</button>
-        ${!hit ? `<button class="btn btn-primary" onclick="completeGoal('${playerId}')">bati 100</button>` : ''}
-      </div>
-      <div class="custom-row">
-        <input type="number" id="custom-input-${playerId}" placeholder="0" min="-999" max="9999" aria-label="Quantidade personalizada">
-        <button class="btn btn-outline" onclick="customAdd('${playerId}')">adicionar</button>
-      </div>
-      <div class="undo-row">
-        ${state.lastDelta[playerId] ? `<button class="btn btn-ghost" onclick="undoLast('${playerId}')">desfazer último (${state.lastDelta[playerId]>0?'+':''}${state.lastDelta[playerId]})</button>` : ''}
-      </div>
-      <button class="btn btn-ghost" onclick="openBackdate()" style="padding-left:0;">+ registrar dia passado</button>
-    </div>
-  `;
-}
-
-function renderWeekStrip(playerId){
-  const days = [];
-  let d = new Date();
-  for(let i=0;i<7;i++){ days.push(new Date(d)); d.setDate(d.getDate()-1); }
-  days.reverse();
-  return days.map(day=>{
-    const k = todayKey(day);
-    const c = getCount(k, playerId);
-    const hit = c >= 100;
-    return `
-      <div class="week-pill${hit?' hit':''}">
-        <span class="week-day-label">${WEEKDAYS[day.getDay()][0].toUpperCase()}</span>
-        <span class="week-count">${c}</span>
-      </div>
-    `;
-  }).join('');
-}
-
-function rankTitle(pos, totalPlayers, total){
-  if(total === 0) return 'Desertor';
-  if(pos === 0) return 'General';
-  if(pos === totalPlayers-1) return 'Recruta';
-  if(pos === 1) return 'Capitão';
-  if(pos === 2) return 'Sargento';
-  return 'Soldado';
-}
-function rankEmoji(pos, totalPlayers, total){
-  if(total === 0) return `<span class="rank-medal rank-medal-none">🏳️</span>`;
-  if(pos === 0) return `<span class="rank-medal rank-medal-gold">🎖️</span>`;
-  if(pos === 1) return `<span class="rank-medal rank-medal-silver">🎖️</span>`;
-  if(pos === 2) return `<span class="rank-medal rank-medal-bronze">🎖️</span>`;
-  return '';
-}
-
-function renderRankingTab(){
-  const todayStr = todayKey();
-  const ranked = state.config.players.map(p=>{
-    const s = computeAllTimeStats(p.id);
-    return {...p, ...s, today: getCount(todayStr, p.id)};
-  }).sort((a,b)=> b.total - a.total || b.daysHit - a.daysHit);
-
-  const n = ranked.length;
-  const hasAnyData = ranked.some(p=>p.total > 0);
-
-  let podium = '';
-  if(hasAnyData && n >= 3){
-    const podiumOrder = [ranked[1], ranked[0], ranked[2]];
-    const podiumClass = ['pod-2','pod-1','pod-3'];
-    podium = `<div class="podium">` + podiumOrder.map((p,i)=>`
-      <div class="podium-col ${podiumClass[i]}">
-        <div class="podium-emoji">${rankEmoji(ranked.indexOf(p), n, p.total)}</div>
-        <div class="podium-name clickable-name" onclick="openProfile('${p.id}')">${escapeHtml(p.name)}</div>
-        <div class="podium-title">${rankTitle(ranked.indexOf(p), n, p.total)}</div>
-        <div class="podium-block">
-          <div class="podium-total">${p.total}</div>
-          <div class="podium-total-label">flexões</div>
-        </div>
-      </div>
-    `).join('') + `</div>`;
-  }
-
-  return `
-    <h2 class="section-title">Ranking geral</h2>
-    ${podium}
-    <div class="roster-search">
-      <input type="text" id="rank-search-input" placeholder="Buscar pessoa..." value="${escapeAttr(state.searchRanking)}" oninput="state.searchRanking=this.value; updateRankingList();">
-    </div>
-    <div class="rank-list" id="rank-list">${buildRankRows(ranked)}</div>
-    <p class="rank-note">Ranking pelo total de flexões desde o início. Empate desempata por dias na meta.</p>
-  `;
-}
-
-function buildRankRows(ranked){
-  const n = ranked.length;
-  const leaderTotal = ranked[0] ? (ranked[0].total || 1) : 1;
-  const q = state.searchRanking.trim().toLowerCase();
-
-  const rows = ranked
-    .map((p,i) => ({p, i}))
-    .filter(({p}) => !q || p.name.toLowerCase().includes(q));
-
-  if(rows.length === 0){
-    return `<p class="empty-note">Ninguém com esse nome.</p>`;
-  }
-
-  return rows.map(({p,i})=>{
-    const pct = Math.round((p.total/leaderTotal)*100);
-    const gapAhead = i > 0 ? ranked[i-1].total - p.total : 0;
-    const gapNote = i === 0
-      ? (n > 1 && p.total > 0 ? `${p.total - ranked[1].total} na frente do 2º` : 'liderando')
-      : `faltam ${gapAhead+1} pra passar o ${i}º`;
-    return `
-      <div class="rank-card${i===0 && p.total>0 ? ' leader' : ''}">
-        <div class="rank-card-pos">${rankEmoji(i, n, p.total)}<span class="rank-card-num">${i+1}º</span></div>
-        <div class="rank-card-body">
-          <div class="rank-card-top">
-            <div class="rank-card-name clickable-name" onclick="openProfile('${p.id}')"><span class="avatar-chip" style="margin-right:8px;">${initials(p.name)}</span>${escapeHtml(p.name)}</div>
-            <div class="rank-card-total">${p.total}</div>
-          </div>
-          <div class="rank-card-title">${rankTitle(i, n, p.total)}</div>
-          <div class="rank-bar-track">
-            <div class="rank-bar-fill" style="width:${pct}%; background:${i===0 && p.total>0 ? 'var(--brass)' : 'var(--effort)'};"></div>
-          </div>
-          <div class="rank-card-meta">
-            <span>${p.total > 0 ? gapNote : 'ainda não começou'}</span>
-            <span>🔥 ${p.bestStreak} · meta ${p.daysHit}x${p.today > 0 ? ` · hoje ${p.today}` : ''}</span>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function updateRankingList(){
-  const todayStr = todayKey();
-  const ranked = state.config.players.map(p=>{
-    const s = computeAllTimeStats(p.id);
-    return {...p, ...s, today: getCount(todayStr, p.id)};
-  }).sort((a,b)=> b.total - a.total || b.daysHit - a.daysHit);
-  const el = document.getElementById('rank-list');
-  if(el) el.innerHTML = buildRankRows(ranked);
-}
-
-function renderProgressTab(){
-  const myStats = computeAllTimeStats(state.myId);
-  const groupTotal = computeGroupAllTimeTotal();
-  const todayStr = todayKey();
-  const totalToday = computeGroupDailyTotal(todayStr);
-  const activeToday = state.config.players.filter(p => getCount(todayStr, p.id) > 0).length;
-  const n = state.config.players.length;
-  const avgPerPerson = n > 0 ? Math.round(groupTotal / n) : 0;
-  const topView = state.topChartView || 'you';
-
-  const topChart = topView === 'you'
-    ? `
-      <div class="legend">
-        <span class="legend-item"><span class="legend-dot" style="background:var(--effort);"></span>suas flexões</span>
-        <span class="legend-item"><span class="legend-dash"></span>meta (100)</span>
-      </div>
-      <p class="chart-hint">Toca no gráfico pra ver mais detalhes.</p>
-      <div class="chart-scroll chart-clickable" onclick="openChartDetail('you')">${renderSingleSeriesChart(dateKey => getCount(dateKey, state.myId), 100, 'var(--effort)')}</div>
-    `
-    : `
-      <div class="legend">
-        ${state.config.players.map((p,i)=>`<span class="legend-item"><span class="legend-dot" style="background:${playerChartColor(i)}"></span>${escapeHtml(p.name)}</span>`).join('')}
-        <span class="legend-item"><span class="legend-dash"></span>meta (100)</span>
-      </div>
-      <p class="chart-hint">Toca numa barra pra abrir o perfil da pessoa, ou <span class="chart-hint-link" onclick="openChartDetail('all')">vê o gráfico maior</span>.</p>
-      <div class="chart-scroll">${renderMultiPlayerChart()}</div>
-    `;
-
-  return `
-    <h2 class="section-title">${topView==='you' ? 'Seu progresso' : 'Progresso de todos'}</h2>
-    <div class="progress-toggle">
-      <button class="progress-toggle-btn${topView==='you'?' active':''}" onclick="switchTopChartView('you')">Você</button>
-      <button class="progress-toggle-btn${topView==='all'?' active':''}" onclick="switchTopChartView('all')">Todos</button>
-    </div>
-    ${topView==='you' ? `
-    <div class="stat-grid">
-      <div class="stat-card">
-        <div class="stat-name clickable-name" onclick="openProfile('${state.myId}')">${escapeHtml(playerName(state.myId))}</div>
-        <div class="stat-row"><span class="stat-num">${myStats.total}</span><span class="stat-label">flexões no total</span></div>
-        <div class="stat-row"><span class="stat-num">${myStats.daysHit}</span><span class="stat-label">dias na meta</span></div>
-        <div class="stat-row"><span class="stat-num">${myStats.bestStreak}</span><span class="stat-label">maior sequência</span></div>
-      </div>
-    </div>
-    ` : ''}
-    ${topChart}
-
-    <h2 class="section-title" style="margin-top:30px;">Grupo · ${n} pessoa${n===1?'':'s'}</h2>
-    <div class="stat-grid">
-      <div class="stat-card">
-        <div class="stat-row"><span class="stat-num">${groupTotal}</span><span class="stat-label">flexões do grupo, no total</span></div>
-        <div class="stat-row"><span class="stat-num">${avgPerPerson}</span><span class="stat-label">média por pessoa</span></div>
-        <div class="stat-row"><span class="stat-num">${activeToday}/${n}</span><span class="stat-label">já registraram hoje</span></div>
-      </div>
-    </div>
-    <div class="legend">
-      <span class="legend-item"><span class="legend-dot" style="background:var(--brass);"></span>total do grupo por dia</span>
-      <span class="legend-item"><span class="legend-dash"></span>meta do grupo (${n * 100})</span>
-    </div>
-    <p class="chart-hint">Toca no gráfico pra ver mais detalhes.</p>
-    <div class="chart-scroll chart-clickable" onclick="openChartDetail('group')">${renderSingleSeriesChart(dateKey => computeGroupDailyTotal(dateKey), n * 100, 'var(--brass)')}</div>
-  `;
-}
-
-function renderMuralTab(){
-  return `
-    <button class="btn btn-outline" style="margin-bottom:16px;" onclick="openPokePicker()">cutucar alguém</button>
-    ${state.error ? `<div class="error-banner">${state.error}</div>` : ''}
-    ${renderMuralComposer()}
-    <div class="mural-feed">${renderMuralFeed()}</div>
-  `;
-}
-
-function renderMuralComposer(){
-  const imgPreview = state.muralComposerImage
-    ? `<div class="composer-preview"><img src="${state.muralComposerImage}"><button class="composer-preview-x" onclick="removeComposerImage()" aria-label="Remover imagem">×</button></div>`
-    : '';
-  return `
-    <div class="mural-composer">
-      ${imgPreview}
-      <div class="composer-row">
-        <input type="text" id="mural-composer-input" placeholder="Escreve algo pro grupo..." value="${escapeAttr(state.muralComposerText)}" oninput="state.muralComposerText=this.value">
-        <label class="composer-image-btn" aria-label="Tirar foto">
-          <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="onComposerImageSelected(this)">
-          📷
-        </label>
-        <label class="composer-image-btn" aria-label="Escolher da galeria">
-          <input type="file" accept="image/*" style="display:none;" onchange="onComposerImageSelected(this)">
-          🖼️
-        </label>
-        <button class="btn btn-primary" onclick="sendMuralPost()" ${state.muralSending?'disabled':''}>${state.muralSending ? '...' : 'postar'}</button>
-      </div>
-    </div>
-  `;
-}
-
-function renderMuralFeed(){
-  if(state.muralMessages.length === 0){
-    return `<p class="empty-note">Ninguém postou nada ainda. Seja o primeiro.</p>`;
-  }
-  return state.muralMessages.map(m=>{
-    const author = playerName(m.authorId);
-    const isPoke = !!m.targetId;
-    const targetName = isPoke ? playerName(m.targetId) : '';
-    const isMine = m.authorId === state.myId;
-    return `
-      <div class="mural-card${isPoke?' poke':''}">
-        <div class="mural-card-head">
-          <div class="avatar-chip mural-avatar">${initials(author)}</div>
-          <div class="mural-card-meta">
-            <div class="mural-card-name">${escapeHtml(author)}${isPoke ? ` <span class="mural-poke-tag">cutucou ${escapeHtml(targetName)}</span>` : ''}</div>
-            <div class="mural-card-time">${formatMsgTime(m)}</div>
-          </div>
-          ${isMine ? `<button class="mural-delete-btn" onclick="deleteMuralPost('${m.id}')" aria-label="Apagar post">🗑</button>` : ''}
-        </div>
-        ${m.text ? `<div class="mural-card-text">${escapeHtml(m.text)}</div>` : ''}
-        ${m.image ? `<img class="mural-card-image" src="${m.image}">` : ''}
-      </div>
-    `;
-  }).join('');
-}
-
-async function deleteMuralPost(id){
-  if(!window.confirm('Apagar esse post? Não dá pra desfazer.')) return;
-  try{
-    await COL_MURAL.doc(id).delete();
-    state.error = null;
-  }catch(e){
-    state.error = 'Não deu pra apagar. Confere sua conexão e tenta de novo.';
-    render();
-  }
-}
-
-function renderPokePickerModal(){
-  const others = state.config.players.filter(p => p.id !== state.myId);
-  const btns = others.map(p =>
-    `<button class="choice-btn" style="font-size:16px; padding:12px 16px;" onclick="pickPokeTarget('${p.id}')">${escapeHtml(p.name)}</button>`
-  ).join('');
-  return `
-    <div class="modal-overlay" onclick="closePokePickerIfOverlay(event)">
-      <div class="modal">
-        <h3>Cutucar quem?</h3>
-        <div class="choice-row">${btns}</div>
-        <div class="modal-actions">
-          <button class="btn btn-ghost" onclick="closePokePicker()">Cancelar</button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderPokeModal(){
-  const name = playerName(state.pokeTarget);
-  return `
-    <div class="modal-overlay" onclick="closePokeIfOverlay(event)">
-      <div class="modal">
-        <h3>Cutucar ${escapeHtml(name)}</h3>
-        <div class="field">
-          <input type="text" id="poke-text-input" placeholder="Escreve o que quiser mandar" autofocus>
-        </div>
-        ${state.error ? `<div class="error-banner">${state.error}</div>` : ''}
-        <button class="btn btn-primary btn-block" onclick="sendPoke()" ${state.pokeSending?'disabled':''}>${state.pokeSending ? 'mandando...' : 'mandar'}</button>
-        <div class="modal-actions">
-          <button class="btn btn-ghost" onclick="closePoke()">Cancelar</button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-
-function renderMultiPlayerChart(numDays){
-  const days = lastNDaysAscending(numDays || 14);
-  const players = state.config.players;
-  const barW = 8;
-  const gap = 2;
-  const groupGap = 14;
-  const groupW = players.length*(barW+gap) - gap + groupGap;
-  const chartH = 150;
-  const marginTop = 24;
-  const marginBottom = 22;
-  const width = days.length*groupW + 10;
-  const height = chartH + marginTop + marginBottom;
-
-  let maxVal = 100;
-  days.forEach(d=>{
-    const k = todayKey(d);
-    players.forEach(p=>{ maxVal = Math.max(maxVal, getCount(k, p.id)); });
-  });
-  maxVal = Math.ceil(maxVal*1.15/10)*10;
-
-  const goalY = marginTop + chartH - (100/maxVal)*chartH;
-
-  let bars = '';
-  days.forEach((d,i)=>{
-    const k = todayKey(d);
-    const x0 = 5 + i*groupW;
-    players.forEach((p,j)=>{
-      const c = getCount(k, p.id);
-      const h = (c/maxVal)*chartH;
-      const y = marginTop + chartH - h;
-      const x = x0 + j*(barW+gap);
-      bars += `<rect x="${x}" y="${y}" width="${barW}" height="${Math.max(h,1)}" rx="1.5" fill="${playerChartColor(j)}" class="clickable-bar" onclick="openProfile('${p.id}')"><title>${escapeHtml(p.name)}: ${c}</title></rect>`;
-    });
-    if(i % 2 === 0 || i === days.length-1){
-      const cx = x0 + (players.length*(barW+gap)-gap)/2;
-      bars += `<text x="${cx}" y="${height-6}" class="chart-label" text-anchor="middle">${d.getDate()}</text>`;
-    }
-  });
-
-  return `
-    <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-      <line x1="0" y1="${goalY}" x2="${width}" y2="${goalY}" class="goal-line"></line>
-      ${bars}
-    </svg>
-  `;
-}
-
-function renderLineChart(getValueForDate, goalValue, lineColor, numDays){
-  const days = lastNDaysAscending(numDays);
-  const pointSpacing = numDays <= 14 ? 40 : 34;
-  const axisW = 40;
-  const plotMarginRight = 20;
-  const marginTop = 26;
-  const marginBottom = 30;
-  const plotW = Math.max(220, (days.length-1) * pointSpacing) + plotMarginRight;
-  const height = 260;
-  const plotH = height - marginTop - marginBottom;
-
-  const values = days.map(d => getValueForDate(todayKey(d)));
-  let maxVal = Math.max(goalValue, 10, ...values);
-  const yTickCount = 5;
-  const niceMax = Math.max(25, Math.ceil((maxVal*1.1) / 25) * 25);
-
-  let axisLabels = '';
-  let gridLines = '';
-  for(let t=0; t<=yTickCount; t++){
-    const val = Math.round((niceMax / yTickCount) * t);
-    const y = marginTop + plotH - (val/niceMax)*plotH;
-    axisLabels += `<text x="${axisW-8}" y="${y+3}" class="linechart-ylabel" text-anchor="end">${val}</text>`;
-    gridLines += `<line x1="0" y1="${y}" x2="${plotW}" y2="${y}" class="linechart-grid"></line>`;
-  }
-
-  const stepX = days.length > 1 ? (plotW-plotMarginRight)/(days.length-1) : 0;
-  const points = days.map((d,i)=>{
-    const v = values[i];
-    const x = i*stepX + 6;
-    const y = marginTop + plotH - (v/niceMax)*plotH;
-    return {x, y, v, d};
-  });
-
-  const polylinePoints = points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-
-  const labelEvery = numDays <= 14 ? 1 : (numDays <= 30 ? 2 : 4);
-  let xLabels = '';
-  points.forEach((p,i)=>{
-    if(i % labelEvery === 0 || i === points.length-1){
-      xLabels += `<text x="${p.x}" y="${height-8}" class="linechart-xlabel" text-anchor="middle">${p.d.getDate()}/${String(p.d.getMonth()+1).padStart(2,'0')}</text>`;
-    }
-  });
-
-  const goalY = marginTop + plotH - (Math.min(goalValue,niceMax)/niceMax)*plotH;
-
-  let dots = '';
-  let valueLabels = '';
-  points.forEach(p=>{
-    dots += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${lineColor}"><title>${p.d.getDate()}/${String(p.d.getMonth()+1).padStart(2,'0')}: ${p.v}</title></circle>`;
-    const labelY = Math.max(12, p.y - 10);
-    valueLabels += `<text x="${p.x.toFixed(1)}" y="${labelY}" class="chart-value-label" text-anchor="middle">${p.v}</text>`;
-  });
-
-  const axisSvg = `
-    <svg width="${axisW}" height="${height}" viewBox="0 0 ${axisW} ${height}" xmlns="http://www.w3.org/2000/svg">
-      ${axisLabels}
-    </svg>
-  `;
-
-  const plotSvg = `
-    <svg width="${plotW}" height="${height}" viewBox="0 0 ${plotW} ${height}" xmlns="http://www.w3.org/2000/svg">
-      ${gridLines}
-      <line x1="0" y1="${goalY}" x2="${plotW}" y2="${goalY}" class="goal-line"></line>
-      ${xLabels}
-      <polyline points="${polylinePoints}" fill="none" stroke="${lineColor}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></polyline>
-      ${dots}
-      ${valueLabels}
-    </svg>
-  `;
-
-  return `
-    <div class="linechart-wrap">
-      <div class="linechart-axis">${axisSvg}</div>
-      <div class="chart-scroll linechart-plot-scroll">${plotSvg}</div>
-    </div>
-  `;
-}
-
-function renderSingleSeriesChart(getValueForDate, goalValue, barColorVar, numDays, chartHeight){
-  const days = lastNDaysAscending(numDays || 14);
-  const barW = 20;
-  const gap = 12;
-  const groupW = barW + gap;
-  const chartH = chartHeight || 150;
-  const marginTop = 24;
-  const marginBottom = 22;
-  const width = days.length*groupW + 10;
-  const height = chartH + marginTop + marginBottom;
-
-  let maxVal = Math.max(goalValue, 1);
-  days.forEach(d=>{
-    const k = todayKey(d);
-    maxVal = Math.max(maxVal, getValueForDate(k));
-  });
-  maxVal = Math.ceil(maxVal*1.15/10)*10;
-
-  const goalY = marginTop + chartH - (goalValue/maxVal)*chartH;
-
-  let bars = '';
-  days.forEach((d,i)=>{
-    const k = todayKey(d);
-    const val = getValueForDate(k);
-    const x = 5 + i*groupW;
-    const h = (val/maxVal)*chartH;
-    const y = marginTop + chartH - h;
-    const labelY = Math.max(12, y - 6);
-    bars += `<rect x="${x}" y="${y}" width="${barW}" height="${h}" rx="3" fill="${barColorVar}"></rect>`;
-    bars += `<text x="${x+barW/2}" y="${labelY}" class="chart-value-label" text-anchor="middle">${val}</text>`;
-    bars += `<text x="${x+barW/2}" y="${height-6}" class="chart-label" text-anchor="middle">${d.getDate()}</text>`;
-  });
-
-  return `
-    <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-      <line x1="0" y1="${goalY}" x2="${width}" y2="${goalY}" class="goal-line"></line>
-      ${bars}
-    </svg>
-  `;
-}
-
-function renderSettingsModal(){
-  const nameFields = state.config.players.map((p,i)=>`
-    <div class="field">
-      <label class="field-label">Nome ${i+1}</label>
-      <input type="text" id="edit-name-${p.id}" value="${escapeAttr(p.name)}">
-    </div>
-  `).join('');
-
-  return `
-    <div class="modal-overlay" onclick="closeModalIfOverlay(event)">
-      <div class="modal">
-        <h3>Configurações</h3>
-        ${nameFields}
-        <button class="btn btn-primary btn-block" onclick="saveNames()">Salvar nomes</button>
-
-        <div class="danger-zone">
-          <p style="margin-bottom:10px;">Adicionar uma nova pessoa ao desafio.</p>
-          <div class="setup-player-row">
-            <input type="text" id="new-member-name" placeholder="Nome da nova pessoa">
-            <button class="remove-player" onclick="addMember()" aria-label="Adicionar" style="color:var(--chalk); font-size:22px;">+</button>
-          </div>
-        </div>
-
-        <div class="danger-zone">
-          <p style="margin-bottom:10px;">Corrigir suas próprias flexões (só você mexe no seu registro).</p>
-          <div class="field">
-            <label class="field-label">Data</label>
-            <input type="date" id="adjust-date" value="${todayKey()}" max="${todayKey()}">
-          </div>
-          <div class="custom-row">
-            <input type="number" id="adjust-amount" placeholder="Quantidade a remover" min="1" max="9999">
-            <button class="btn btn-outline" onclick="adjustMyEntry('subtract')">remover</button>
-          </div>
-          <button class="btn btn-ghost" onclick="adjustMyEntry('zero')" style="padding-left:0;">zerar esse dia inteiro</button>
-        </div>
-
-        ${state.error ? `<div class="error-banner">${state.error}</div>` : ''}
-
-        <div class="modal-actions">
-          <button class="btn btn-ghost" onclick="toggleSettings()">Fechar</button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function closeModalIfOverlay(e){
-  if(e.target.classList.contains('modal-overlay')) toggleSettings();
-}
-
-function renderBackdateModal(){
-  const todayStr = todayKey();
-  return `
-    <div class="modal-overlay" onclick="closeModalIfOverlayBackdate(event)">
-      <div class="modal">
-        <h3>Registrar dia passado</h3>
-        <p class="tagline" style="margin-bottom:16px;">Esqueceu de marcar um dia? Registra aqui pro seu nome (${escapeHtml(playerName(state.myId))}).</p>
-        <div class="field">
-          <label class="field-label">Data</label>
-          <input type="date" id="backdate-date" value="${state.backdateDate}" max="${todayStr}">
-        </div>
-        <div class="field">
-          <label class="field-label">Quantidade de flexões</label>
-          <input type="number" id="backdate-amount" placeholder="Ex: 100" min="1" max="999" value="${state.backdateAmount}">
-        </div>
-        ${state.error ? `<div class="error-banner">${state.error}</div>` : ''}
-        <button class="btn btn-primary btn-block" onclick="submitBackdate()">Registrar</button>
-        <div class="modal-actions">
-          <button class="btn btn-ghost" onclick="closeBackdate()">Cancelar</button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-function toggleSettings(){
-  state.settingsOpen = !state.settingsOpen;
-  state.confirmReset = false;
-  render();
-}
-async function adjustMyEntry(mode){
-  const dateInput = document.getElementById('adjust-date');
-  const amountInput = document.getElementById('adjust-amount');
-  const dateVal = dateInput ? dateInput.value : '';
-  const todayStr = todayKey();
-
-  if(!dateVal){
-    state.error = 'Escolhe uma data.';
-    render();
-    return;
-  }
-  if(dateVal > todayStr){
-    state.error = 'Não dá pra ajustar um dia futuro.';
-    render();
-    return;
-  }
-
-  if(mode === 'zero'){
-    const current = getCount(dateVal, state.myId);
-    if(current === 0){
-      state.error = 'Já está zerado nesse dia.';
-      render();
-      return;
-    }
-    await addReps(state.myId, -current, dateVal);
-  } else {
-    const amount = parseInt(amountInput ? amountInput.value : '', 10);
-    if(isNaN(amount) || amount <= 0){
-      state.error = 'Coloca uma quantidade válida.';
-      render();
-      return;
-    }
-    const current = getCount(dateVal, state.myId);
-    const toRemove = Math.min(amount, current);
-    if(toRemove <= 0){
-      state.error = 'Não tem flexões pra remover nesse dia.';
-      render();
-      return;
-    }
-    await addReps(state.myId, -toRemove, dateVal);
-  }
-  state.error = null;
-  if(amountInput) amountInput.value = '';
-  render();
-}
-
-async function addMember(){
-  const input = document.getElementById('new-member-name');
-  const name = input ? input.value.trim() : '';
-  if(!name){
-    state.error = 'Coloca um nome pra adicionar.';
-    render();
-    return;
-  }
-  const existingIds = state.config.players.map(p => parseInt(p.id.replace('p',''), 10));
-  const nextNum = Math.max(0, ...existingIds) + 1;
-  const newPlayer = {id: 'p'+nextNum, name};
-  const players = [...state.config.players, newPlayer];
-  state.error = null;
-  await saveConfig({players});
-}
-
-async function saveNames(){
-  const players = state.config.players.map(p=>{
-    const input = document.getElementById('edit-name-'+p.id);
-    const name = input ? input.value.trim() : p.name;
-    return {id:p.id, name: name || p.name};
-  });
-  state.settingsOpen = false;
-  await saveConfig({players});
-}
-
-function escapeHtml(str){
-  const d = document.createElement('div');
-  d.textContent = str;
-  return d.innerHTML;
-}
-function escapeAttr(str){
-  return String(str).replace(/"/g,'&quot;');
-}
-
-startListeners();
-
-if('serviceWorker' in navigator){
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  });
-}
 </script>
+
 </body>
 </html>
