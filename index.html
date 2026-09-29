@@ -56,6 +56,7 @@
   }
   .stage-label .dot{width:6px;height:6px;border-radius:50%;background:var(--amber-bright);}
 
+  /* ---- tabs: single scrollable row, never clipped ---- */
   .tabs{
     display:flex;
     gap:6px;
@@ -63,9 +64,13 @@
     border:1px solid var(--line);
     padding:4px;
     border-radius:12px;
-    flex-wrap:wrap;
-    justify-content:center;
+    width:100%;
+    max-width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
   }
+  .tabs::-webkit-scrollbar{ display:none; }
   .tabs button{
     appearance:none;
     border:none;
@@ -79,6 +84,7 @@
     cursor:pointer;
     transition:background .2s ease, color .2s ease;
     white-space:nowrap;
+    flex:0 0 auto;
   }
   .tabs button.active{
     background:var(--amber);
@@ -108,7 +114,7 @@
   }
   .screen{
     position:absolute; inset:0;
-    padding:52px 22px 26px;
+    padding:54px 22px 26px;
     display:none;
     flex-direction:column;
     animation:fade .35s ease;
@@ -200,7 +206,7 @@
   .empty-note{ font-size:12.5px; color:rgba(243,237,226,0.45); text-align:center; padding:18px 0; }
 
   /* ---- screen 2: locked ---- */
-  .lock-screen{ align-items:center; text-align:center; justify-content:flex-start; padding-top:64px; }
+  .lock-screen{ align-items:center; text-align:center; justify-content:flex-start; padding-top:66px; }
   .lock-icon{
     width:80px; height:80px; border-radius:50%;
     background:rgba(224,164,88,0.12);
@@ -256,7 +262,7 @@
   }
 
   /* ---- screen 3: earned freedom ---- */
-  .earn-screen{ align-items:center; text-align:center; padding-top:56px; }
+  .earn-screen{ align-items:center; text-align:center; padding-top:58px; }
   .earn-icon{
     width:80px; height:80px; border-radius:50%;
     background:rgba(221,230,223,0.1);
@@ -329,8 +335,16 @@
     transition:border-color .2s ease, background .2s ease;
   }
   .setup-app-card.selected{ border-color:rgba(224,164,88,0.4); background:rgba(224,164,88,0.05); }
-  .setup-app-top{ display:flex; align-items:center; gap:10px; cursor:pointer; }
+  .setup-app-top{ display:flex; align-items:center; gap:8px; cursor:pointer; }
   .setup-app-name{ flex:1; font-size:14px; font-weight:600; }
+  .gear-btn{
+    width:30px; height:30px; border-radius:9px; flex-shrink:0;
+    background:rgba(255,255,255,0.05); border:1px solid var(--line);
+    color:rgba(243,237,226,0.65); font-size:14px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .gear-btn:active{ transform:scale(0.94); }
   .toggle{ width:38px; height:22px; border-radius:999px; background:rgba(255,255,255,0.12); position:relative; flex-shrink:0; transition:background .2s ease; }
   .toggle.on{ background:var(--amber-bright); }
   .toggle-knob{ width:16px; height:16px; border-radius:50%; background:var(--cream); position:absolute; top:3px; left:3px; transition:left .2s ease; }
@@ -339,6 +353,7 @@
   .setup-slider-row.disabled{ opacity:0.3; pointer-events:none; }
   .setup-slider-row input[type=range]{ flex:1; }
   .setup-slider-value{ font-size:11px; color:rgba(243,237,226,0.65); min-width:70px; text-align:right; font-weight:700; font-variant-numeric:tabular-nums; }
+  .setup-rules-note{ font-size:10.5px; color:var(--amber-bright); margin-top:8px; }
 
   input[type=range]{
     -webkit-appearance:none; appearance:none;
@@ -382,6 +397,87 @@
     pointer-events:none;
   }
 
+  /* ---- interval modal ---- */
+  .modal-overlay{
+    position:absolute; inset:0;
+    background:rgba(10,13,20,0.72);
+    display:none;
+    align-items:flex-end;
+    z-index:40;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal-sheet{
+    width:100%;
+    max-height:82%;
+    background:var(--navy);
+    border:1px solid var(--line);
+    border-top-left-radius:22px;
+    border-top-right-radius:22px;
+    padding:18px 20px 22px;
+    overflow-y:auto;
+    animation:sheet-up .25s ease;
+  }
+  @keyframes sheet-up{ from{ transform:translateY(16px); opacity:0.6; } to{ transform:translateY(0); opacity:1; } }
+  .modal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+  .modal-title{ font-size:16px; font-weight:700; }
+  .modal-close{ background:none; border:none; color:rgba(243,237,226,0.5); font-size:20px; cursor:pointer; line-height:1; padding:4px; }
+  .modal-sub{ font-size:12px; color:rgba(243,237,226,0.5); margin-bottom:16px; }
+
+  .rule-row{
+    display:flex; align-items:center; gap:10px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:10px 12px;
+    margin-bottom:8px;
+  }
+  .rule-icon{ font-size:14px; flex-shrink:0; }
+  .rule-text{ flex:1; font-size:12.5px; line-height:1.4; }
+  .rule-text b{ color:var(--cream); }
+  .rule-remove{ background:none; border:none; color:rgba(243,237,226,0.4); font-size:16px; cursor:pointer; flex-shrink:0; padding:2px 4px; }
+  .rule-remove:hover{ color:var(--amber-bright); }
+  .no-rules-note{ font-size:12px; color:rgba(243,237,226,0.4); text-align:center; padding:10px 0 16px; }
+
+  .add-rule-box{
+    border:1px dashed var(--line);
+    border-radius:14px;
+    padding:14px;
+    margin-top:6px;
+  }
+  .field-label{ font-size:10.5px; letter-spacing:0.06em; color:rgba(243,237,226,0.45); margin-bottom:6px; display:block; }
+  .field-row{ margin-bottom:12px; }
+  .type-toggle{ display:flex; gap:8px; }
+  .type-btn{
+    flex:1; padding:9px; border-radius:9px; text-align:center;
+    font-size:12px; font-weight:600; cursor:pointer;
+    background:rgba(255,255,255,0.04); border:1px solid var(--line); color:rgba(243,237,226,0.6);
+  }
+  .type-btn.active{ background:rgba(224,164,88,0.16); border-color:rgba(224,164,88,0.5); color:var(--amber-bright); }
+  .time-row{ display:flex; align-items:center; gap:8px; }
+  .time-row input[type=time]{
+    flex:1; font-family:inherit; font-size:13px; padding:9px 10px;
+    background:rgba(255,255,255,0.05); border:1px solid var(--line); border-radius:9px; color:var(--cream);
+    color-scheme:dark;
+  }
+  .time-sep{ font-size:11px; color:rgba(243,237,226,0.4); }
+  .minutes-row{ display:flex; align-items:center; gap:8px; }
+  .minutes-row input[type=number]{
+    width:70px; font-family:inherit; font-size:13px; padding:9px 10px;
+    background:rgba(255,255,255,0.05); border:1px solid var(--line); border-radius:9px; color:var(--cream);
+  }
+  .minutes-row span{ font-size:12px; color:rgba(243,237,226,0.55); }
+  .add-rule-btn{
+    width:100%; margin-top:12px; padding:11px; border-radius:10px;
+    background:var(--amber-bright); color:var(--navy-deep); font-weight:700; font-size:13px;
+    border:none; cursor:pointer; font-family:inherit;
+  }
+  .add-rule-btn:active{ transform:scale(0.98); }
+  .modal-done-btn{
+    width:100%; margin-top:16px; padding:13px; border-radius:12px;
+    background:rgba(255,255,255,0.06); color:var(--cream); font-weight:700; font-size:13.5px;
+    border:1px solid var(--line); cursor:pointer; font-family:inherit;
+  }
+
   @media (max-width:380px){
     .phone{ width:300px; height:620px; }
   }
@@ -393,8 +489,8 @@
   <div class="stage-label"><span class="dot"></span>WARDEN — CONCEPT PREVIEW</div>
 
   <div class="tabs" role="tablist" aria-label="Preview screens">
-    <button data-screen="setup">Setup</button>
-    <button class="active" data-screen="home">Today</button>
+    <button class="active" data-screen="setup">Setup</button>
+    <button data-screen="home">Today</button>
     <button data-screen="locked">Locked</button>
     <button data-screen="earned">Earned freedom</button>
     <button data-screen="saved">Time saved</button>
@@ -404,7 +500,7 @@
     <div class="notch"></div>
 
     <!-- SCREEN: SETUP (interactive) -->
-    <div class="screen" id="screen-setup">
+    <div class="screen active" id="screen-setup">
       <div class="top-row">
         <div class="brand-mark">
           <svg class="eye-badge" viewBox="0 0 160 160" aria-hidden="true"><path d="M28 80 A60 60 0 0 1 132 80 A60 60 0 0 1 28 80 Z" fill="#F3EDE2"/><circle cx="80" cy="80" r="14" fill="#1F2A44"/><circle cx="80" cy="80" r="5" fill="#E0A458"/></svg>
@@ -412,7 +508,7 @@
         </div>
       </div>
       <div class="headline" style="margin-bottom:6px;">Choose what to guard</div>
-      <div class="setup-intro">Turn on the apps you want Warden to watch, then drag each slider to set a daily limit. You can change this anytime.</div>
+      <div class="setup-intro">Turn on the apps you want Warden to watch, drag each slider for a daily limit, and tap ⚙ to set time-of-day rules for that app.</div>
 
       <div id="setup-app-list"></div>
 
@@ -420,7 +516,7 @@
     </div>
 
     <!-- SCREEN: HOME / TODAY -->
-    <div class="screen active" id="screen-home">
+    <div class="screen" id="screen-home">
       <div class="top-row">
         <div class="brand-mark">
           <svg class="eye-badge" viewBox="0 0 160 160" aria-hidden="true"><path d="M28 80 A60 60 0 0 1 132 80 A60 60 0 0 1 28 80 Z" fill="#F3EDE2"/><circle cx="80" cy="80" r="14" fill="#1F2A44"/><circle cx="80" cy="80" r="5" fill="#E0A458"/></svg>
@@ -539,6 +635,47 @@
       </div>
     </div>
 
+    <!-- INTERVAL RULES MODAL (per-app) -->
+    <div class="modal-overlay" id="interval-overlay">
+      <div class="modal-sheet">
+        <div class="modal-head">
+          <div class="modal-title" id="modal-app-title">Instagram — time rules</div>
+          <button class="modal-close" onclick="closeIntervalModal()">×</button>
+        </div>
+        <div class="modal-sub">Add specific windows during the day with their own rule.</div>
+
+        <div id="rule-list"></div>
+
+        <div class="add-rule-box">
+          <div class="field-row">
+            <span class="field-label">RULE TYPE</span>
+            <div class="type-toggle">
+              <div class="type-btn active" id="type-btn-block" onclick="setRuleType('block')">Block completely</div>
+              <div class="type-btn" id="type-btn-limit" onclick="setRuleType('limit')">Limit time</div>
+            </div>
+          </div>
+          <div class="field-row">
+            <span class="field-label">WINDOW</span>
+            <div class="time-row">
+              <input type="time" id="rule-start" value="22:00">
+              <span class="time-sep">to</span>
+              <input type="time" id="rule-end" value="07:00">
+            </div>
+          </div>
+          <div class="field-row" id="minutes-field" style="display:none; margin-bottom:0;">
+            <span class="field-label">LIMIT</span>
+            <div class="minutes-row">
+              <input type="number" id="rule-minutes" value="10" min="1" max="120">
+              <span>minutes allowed in this window</span>
+            </div>
+          </div>
+          <button class="add-rule-btn" onclick="addInterval()">+ Add rule</button>
+        </div>
+
+        <button class="modal-done-btn" onclick="closeIntervalModal()">Done</button>
+      </div>
+    </div>
+
     <div class="toast" id="toast"></div>
     <div class="watermark">CONCEPT PREVIEW · NOT A LIVE APP YET</div>
   </div>
@@ -548,13 +685,17 @@
   /* ---------------- state ---------------- */
   const state = {
     apps: [
-      { id:'ig', name:'Instagram', icon:'IG', color:'#E1306C', selected:true,  limit:60 },
-      { id:'tt', name:'TikTok',    icon:'TT', color:'#3A3A3A', colorText:'#F3EDE2', selected:true,  limit:45 },
-      { id:'x',  name:'X',         icon:'X',  color:'#E0A458', selected:true,  limit:20 },
-      { id:'fb', name:'Facebook',  icon:'FB', color:'#4267B2', selected:false, limit:30 },
+      { id:'ig', name:'Instagram', icon:'IG', color:'#E1306C', selected:true,  limit:60, intervals:[
+        { type:'block', start:'22:00', end:'07:00' }
+      ]},
+      { id:'tt', name:'TikTok',    icon:'TT', color:'#3A3A3A', colorText:'#F3EDE2', selected:true,  limit:45, intervals:[] },
+      { id:'x',  name:'X',         icon:'X',  color:'#E0A458', selected:true,  limit:20, intervals:[] },
+      { id:'fb', name:'Facebook',  icon:'FB', color:'#4267B2', selected:false, limit:30, intervals:[] },
     ],
     attempts: 5,
-    strictStage: 0, // 0..3, escalates each time you try to bypass
+    strictStage: 0,
+    editingAppId: null,
+    newRuleType: 'block',
   };
 
   const STAGES = [
@@ -584,16 +725,18 @@
     const list = document.getElementById('setup-app-list');
     list.innerHTML = state.apps.map(a => `
       <div class="setup-app-card ${a.selected ? 'selected' : ''}" data-id="${a.id}">
-        <div class="setup-app-top" onclick="toggleApp('${a.id}')">
-          <div class="app-icon" style="background:${a.color}33; color:${a.colorText || a.color};">${a.icon}</div>
-          <div class="setup-app-name">${a.name}</div>
-          <div class="toggle ${a.selected ? 'on' : ''}"><div class="toggle-knob"></div></div>
+        <div class="setup-app-top">
+          <div class="app-icon" style="background:${a.color}33; color:${a.colorText || a.color};" onclick="toggleApp('${a.id}')">${a.icon}</div>
+          <div class="setup-app-name" onclick="toggleApp('${a.id}')">${a.name}</div>
+          <div class="gear-btn" onclick="event.stopPropagation(); openIntervalModal('${a.id}')" aria-label="Time rules for ${a.name}">⚙</div>
+          <div class="toggle ${a.selected ? 'on' : ''}" onclick="toggleApp('${a.id}')"><div class="toggle-knob"></div></div>
         </div>
         <div class="setup-slider-row ${a.selected ? '' : 'disabled'}">
           <input type="range" min="10" max="180" step="5" value="${a.limit}"
                  oninput="onSliderInput('${a.id}', this.value)">
           <span class="setup-slider-value" id="limit-label-${a.id}">${a.limit} min/day</span>
         </div>
+        ${a.intervals.length > 0 ? `<div class="setup-rules-note">⚙ ${a.intervals.length} time rule${a.intervals.length>1?'s':''} set</div>` : ''}
       </div>
     `).join('');
   }
@@ -614,6 +757,66 @@
     renderToday();
     showToast('Limits saved ✓');
     activateTab('home');
+  }
+
+  /* ---------------- interval rules modal ---------------- */
+  function openIntervalModal(id){
+    state.editingAppId = id;
+    state.newRuleType = 'block';
+    const app = state.apps.find(a => a.id === id);
+    document.getElementById('modal-app-title').textContent = app.name + ' — time rules';
+    document.getElementById('rule-start').value = '22:00';
+    document.getElementById('rule-end').value = '07:00';
+    document.getElementById('rule-minutes').value = '10';
+    setRuleType('block');
+    renderRuleList();
+    document.getElementById('interval-overlay').classList.add('show');
+  }
+  function closeIntervalModal(){
+    document.getElementById('interval-overlay').classList.remove('show');
+    renderSetup();
+  }
+  function setRuleType(type){
+    state.newRuleType = type;
+    document.getElementById('type-btn-block').classList.toggle('active', type === 'block');
+    document.getElementById('type-btn-limit').classList.toggle('active', type === 'limit');
+    document.getElementById('minutes-field').style.display = type === 'limit' ? 'block' : 'none';
+  }
+  function renderRuleList(){
+    const app = state.apps.find(a => a.id === state.editingAppId);
+    const listEl = document.getElementById('rule-list');
+    if(app.intervals.length === 0){
+      listEl.innerHTML = `<div class="no-rules-note">No time rules yet — this app just uses the daily limit above.</div>`;
+      return;
+    }
+    listEl.innerHTML = app.intervals.map((r,i) => {
+      const desc = r.type === 'block'
+        ? `<b>Blocked</b> from <b>${r.start}</b> to <b>${r.end}</b>`
+        : `<b>${r.minutes} min</b> allowed from <b>${r.start}</b> to <b>${r.end}</b>`;
+      return `
+        <div class="rule-row">
+          <span class="rule-icon">${r.type === 'block' ? '🚫' : '⏳'}</span>
+          <span class="rule-text">${desc}</span>
+          <button class="rule-remove" onclick="removeInterval(${i})" aria-label="Remove rule">×</button>
+        </div>
+      `;
+    }).join('');
+  }
+  function addInterval(){
+    const app = state.apps.find(a => a.id === state.editingAppId);
+    const start = document.getElementById('rule-start').value || '00:00';
+    const end = document.getElementById('rule-end').value || '00:00';
+    const rule = { type: state.newRuleType, start, end };
+    if(state.newRuleType === 'limit'){
+      rule.minutes = parseInt(document.getElementById('rule-minutes').value, 10) || 10;
+    }
+    app.intervals.push(rule);
+    renderRuleList();
+  }
+  function removeInterval(index){
+    const app = state.apps.find(a => a.id === state.editingAppId);
+    app.intervals.splice(index, 1);
+    renderRuleList();
   }
 
   /* ---------------- today screen ---------------- */
@@ -642,7 +845,7 @@
           <div class="app-icon" style="background:${a.color}33; color:${a.colorText || a.color};">${a.icon}</div>
           <div class="app-meta">
             <div class="app-name">${a.name}</div>
-            <div class="app-time">${used} of ${a.limit} min today</div>
+            <div class="app-time">${used} of ${a.limit} min today${a.intervals.length ? ' · ' + a.intervals.length + ' rule' + (a.intervals.length>1?'s':'') : ''}</div>
           </div>
           <div class="app-status ${watching ? 'status-watch' : 'status-ok'}">${watching ? 'Watching' : 'On track'}</div>
           <div class="chevron">›</div>
@@ -670,7 +873,7 @@
     state.attempts++;
     const btn = document.getElementById('reopen-btn');
     btn.parentElement.classList.remove('shake');
-    void btn.parentElement.offsetWidth; // restart animation
+    void btn.parentElement.offsetWidth;
     btn.parentElement.classList.add('shake');
 
     if(state.strictStage < STAGES.length - 1){
